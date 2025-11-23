@@ -60,10 +60,10 @@ paytable = {
     ("G", 5): 1,
 
     ("H", 4): 0.1,
-    ("H", 5): 0.4,
+    ("H", 5): 0.35,
 
     ("I", 4): 0.1,
-    ("I", 5): 0.4,
+    ("I", 5): 0.35,
 }
 
 # vikter till random.choices
@@ -194,11 +194,11 @@ def theoretical_rtp(symbol_probs, paytable, visible_rows=VISIBLE_ROWS):
 
 # fördelning för antal wild reels per free spin
 WILD_REEL_COUNTS = [0, 1, 2, 3, 4, 5]
-WILD_REEL_COUNT_WEIGHTS = [64, 30, 5, 0.89, 0.1, 0.01]  # procent-vikter
+WILD_REEL_COUNT_WEIGHTS = [70.5, 25.89, 3, 0.5, 0.1, 0.01]  # procent-vikter
 
 # multiplikator-fördelning per free spin
 FS_MULTIPLIERS = [1, 2, 5, 8]
-FS_MULT_WEIGHTS = [66, 28, 4, 2]
+FS_MULT_WEIGHTS = [86, 12.9, 1, 0.1]
 
 
 def sample_wild_reels():
@@ -220,8 +220,12 @@ def run_free_spins(num_free_spins, bet, verbose=True, max_win_mult=None):
     - startar med num_free_spins
     - 2 scatters i bonus => +1 extra spin
     - 3 scatters i bonus => +3 extra spins
-    - varje spin: slumpa wild reels + multiplikator
-    - beräkna line win med wild reels och multiplikator
+    - scatters UNDER wild reels räknas INTE för retriggers
+    - varje spin:
+        * slumpa wild reels
+        * slumpa multiplikator FÖR VARJE wild reel (från FS_MULTIPLIERS / FS_MULT_WEIGHTS)
+        * total multiplikator = 1x om inga wilds, annars summa av wild-multipliers
+        * beräkna line win med wild reels och multiplikator
     - om max_win_mult sätts (t.ex. 5000), capsas vinstmultipeln där
       och bonusen avslutas direkt.
     """
@@ -235,34 +239,55 @@ def run_free_spins(num_free_spins, bet, verbose=True, max_win_mult=None):
         # välj wild reels
         wild_reels = sample_wild_reels()
 
-        # välj multiplikator per free spin
-        mult = random.choices(FS_MULTIPLIERS, weights=FS_MULT_WEIGHTS, k=1)[0]
+        # välj multiplikator FÖR VARJE wild reel
+        wild_mults = {}
+        for r in wild_reels:
+            m = random.choices(FS_MULTIPLIERS, weights=FS_MULT_WEIGHTS, k=1)[0]
+            wild_mults[r] = m
+
+        if wild_mults:
+            mult_total = sum(wild_mults.values())
+        else:
+            mult_total = 1  # inga wild reels => ingen extra multiplikator
 
         # i bonusen får S förekomma igen (för retriggers)
         grid = spin_grid_same_probs()
 
         base_mult = evaluate_megaways_win(grid, paytable, wild_reels=wild_reels)
-        spin_mult = base_mult * mult
+        spin_mult = base_mult * mult_total
         total_win_mult += spin_mult
 
         # räkna scatters i free spin → extra spins
-        scatter_count = sum(sym == "S" for row in grid for sym in row)
+        # men IGNORERA scatters under wild-reels
+        scatter_count_nonwild = 0
+        for r in range(len(grid)):
+            for c in range(len(grid[0])):
+                if c in wild_reels:
+                    continue
+                if grid[r][c] == "S":
+                    scatter_count_nonwild += 1
+
         extra_spins = 0
-        if scatter_count == 2:
+        if scatter_count_nonwild == 2:
             extra_spins = 1
-        elif scatter_count == 3:
+        elif scatter_count_nonwild == 3:
             extra_spins = 3
 
         if extra_spins > 0:
             total_spins += extra_spins
             if verbose:
-                print(f"--> {scatter_count} scatters i bonus! +{extra_spins} extra free spin(s).")
+                print(f"--> {scatter_count_nonwild} scatters i bonus! +{extra_spins} extra free spin(s).")
                 print(f"    Nya totalt antal free spins: {total_spins}")
 
         if verbose:
-            print(f"\nFree Spin {spins_played}/{total_spins} | Wild reels: {[r+1 for r in wild_reels]} | Mult: {mult}x")
+            # skriv ut multipliers per wild reel
+            mult_info = ", ".join(
+                f"reel {r+1}: x{wild_mults[r]}" for r in wild_reels
+            ) if wild_mults else "inga wild reels"
+            print(f"\nFree Spin {spins_played}/{total_spins} | Wild reels: {[r+1 for r in wild_reels]} | Mults: {mult_info}")
             print_grid_with_wilds(grid, wild_reels)
             print(f"Free spin vinstmultipel (före mult): {base_mult:.2f}x")
+            print(f"Free spin total-multipel:           {mult_total:.2f}x")
             print(f"Free spin vinstmultipel (efter mult): {spin_mult:.2f}x")
             print(f"Ackumulerad vinstmultipel i FS:      {total_win_mult:.2f}x")
 
