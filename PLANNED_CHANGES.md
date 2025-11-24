@@ -5,3 +5,16 @@
 5. I bonus game fixa en cirkel där det står hur många spins kvar, samt en ruta med hur mycket man har vunnit totalt i bonusen, samt en ruta med det nuvarande spinnets vinst.
 6. fixa en liten fotnot till saldo, vinst på spinnet, bet storlek/insats.
 7. när saldot inte är tillräckligt för den bet size du vill spinna på i base-game så ska spin-knappen vara disabled.
+
+
+### UPDATE THE DEMO VERSION ON GITHUB ###
+# once
+python -m pip install pygame-ce pygbag
+
+# every time you want to rebuild the web version:
+python -m pygbag --build slot_gui.py
+mkdir -p docs
+cp -r build/web/* docs/
+git add .
+git commit -m "Update web build"
+git push
