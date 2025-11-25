@@ -1,10 +1,9 @@
-1. Se till så att GUI-logiken fortfarande är 100 % syncad mot min slot_math-fil
-2. Lägg till animerade partiklar
-3. Lägg till ljud
-4. paytable meny knapp som man ska kunna trycka på närsomhelst för att få upp en meny med svart bakgrund typ 50% opacity med all info om vad varje symbol betalar 3way 4way och 5way, samt hur många scatter symboler som behövs för att trigga bonusen, samt maxwin: 5000x.
-5. I bonus game fixa en cirkel där det står hur många spins kvar, samt en ruta med hur mycket man har vunnit totalt i bonusen, samt en ruta med det nuvarande spinnets vinst.
-6. fixa en liten fotnot till saldo, vinst på spinnet, bet storlek/insats.
-7. när saldot inte är tillräckligt för den bet size du vill spinna på i base-game så ska spin-knappen vara disabled.
+1. Fixa partiklarna så dem ser lite bättre ut! Eventuellt att lägga til mer när saker och ting händer eller liknande.
+2. Lägg till ljud
+3. informationsknappen ska ha paytable (Vilket den redan har) och information-sida så som hur många scatter symboler som behövs för att trigga bonusen, samt maxwin: 5000x.
+4. Bakgrundspartiklar ska ligga bakom grid-blocket.
+5. Language button som ändrar all text från ett språk till ett annat. Tillgängliga språk ska vara (Svenska, Engelska, Tyska, Franska, Spanska).
+
 
 
 ### UPDATE THE DEMO VERSION ON GITHUB ###

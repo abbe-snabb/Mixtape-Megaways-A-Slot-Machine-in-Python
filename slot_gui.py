@@ -2,6 +2,11 @@ import pygame
 import sys
 import random
 import os  # för assets-path
+import math  # <-- NY
+
+
+
+
 
 # Importera din matematiska modell
 from slot_math import (
@@ -23,8 +28,8 @@ pygame.init()
 # ------------------- KONFIG / KONSTANTER -------------------
 
 # Bas-upplösning (intern koordinatsystem)
-BASE_WIDTH = 1600
-BASE_HEIGHT = 900
+BASE_WIDTH = 1824
+BASE_HEIGHT = 1026
 
 # Dessa används bara för layout (ändras inte vid resize)
 WINDOW_WIDTH = BASE_WIDTH
@@ -38,8 +43,7 @@ GRID_WIDTH = GRID_COLS * CELL_SIZE
 GRID_HEIGHT = GRID_ROWS * CELL_SIZE
 
 GRID_X = (WINDOW_WIDTH - GRID_WIDTH) // 2
-GRID_Y = 170
-
+GRID_Y = (WINDOW_HEIGHT - GRID_HEIGHT) // 2 + 10
 # Färger (fallback om inga PNGs finns)
 BG_BASE = (8, 8, 20)
 BG_FS = (15, 10, 35)
@@ -118,6 +122,8 @@ SPIN_SYMBOLS = [s for s in SYMBOLS if s != "S"]
 # Bonus-slut-transition (FS -> base)
 END_FS_FADE_DURATION_MS = 1000
 
+PAYTABLE_BTN_RADIUS = 26  # liten "info"-cirkel uppe till vänster
+
 # ------------------- ASSET-LOADING (PNG-stöd) -------------------
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -142,6 +148,261 @@ def load_image(filename, scale_to=None):
     except Exception as e:
         print(f"[VARNING] kunde inte ladda {full_path}: {e}")
         return None
+
+def draw_bonus_logo_electric(surface):
+    """
+    3D-logga för bonusen:
+      'Electric Cassette Spins'
+    Färgtema: gul → ljusblå → blå
+    3D: mörkblå nästan svart
+    Svag båge över grid-blocket.
+    """
+
+    text = "ELECTRIC CASSETTE SPINS"
+
+    # Mitt över grid-blocket, lite ovanför
+    center_x = GRID_X + GRID_WIDTH // 2
+    baseline_y = GRID_Y - 130   # ungefär var mitten av texten ska hamna
+
+    font = pygame.font.SysFont("arial", 64, bold=True)
+
+    # Bonus colorway
+    TOP = (255, 220, 0)          # gul
+    MID = (120, 220, 255)        # ljusblå
+    BOT = (60, 120, 255)         # blå
+    side_color = (5, 10, 25)     # nästan svart-blå
+    outline_color = (0, 0, 0)
+
+    depth_vec = (2, 2)
+    depth_len = 8
+
+    def vertical_three_gradient(surface_in):
+        w, h = surface_in.get_size()
+        out = pygame.Surface((w, h), pygame.SRCALPHA)
+        for y in range(h):
+            t = y / h
+            if t < 0.5:
+                t2 = t * 2
+                col = (
+                    int(TOP[0] * (1 - t2) + MID[0] * t2),
+                    int(TOP[1] * (1 - t2) + MID[1] * t2),
+                    int(TOP[2] * (1 - t2) + MID[2] * t2),
+                )
+            else:
+                t2 = (t - 0.5) * 2
+                col = (
+                    int(MID[0] * (1 - t2) + BOT[0] * t2),
+                    int(MID[1] * (1 - t2) + BOT[1] * t2),
+                    int(MID[2] * (1 - t2) + BOT[2] * t2),
+                )
+            pygame.draw.line(out, col, (0, y), (w, y))
+        result = surface_in.copy()
+        result.blit(out, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+        return result
+
+    def draw_char_on_arc(ch, center, radius, angle_rad):
+        cx, cy = center
+
+        # Punkt på cirkeln
+        px = cx + radius * math.sin(angle_rad)
+        py = cy - radius * math.cos(angle_rad)
+
+        angle_deg = math.degrees(angle_rad)
+
+        base_white = font.render(ch, True, (255, 255, 255))
+        colored = vertical_three_gradient(base_white)
+
+        w, h = colored.get_size()
+        outline = pygame.Surface((w + 10, h + 10), pygame.SRCALPHA)
+        ocx, ocy = (w + 10) // 2, (h + 10) // 2
+
+        for ox, oy in [(-2,0),(2,0),(0,-2),(0,2),(-2,-2),(2,-2),(-2,2),(2,2)]:
+            o = font.render(ch, True, outline_color)
+            outline.blit(o, o.get_rect(center=(ocx + ox, ocy + oy)))
+
+        outline.blit(colored, colored.get_rect(center=(ocx, ocy)))
+
+        side = outline.copy()
+        side.fill((*side_color, 255), special_flags=pygame.BLEND_RGBA_MULT)
+
+        front_rot = pygame.transform.rotozoom(outline, -angle_deg, 1.0)
+        side_rot  = pygame.transform.rotozoom(side,   -angle_deg, 1.0)
+
+        # 3D-extrusion längs samma vektor
+        for i in range(depth_len, 0, -1):
+            dx = depth_vec[0] * i
+            dy = depth_vec[1] * i
+            surface.blit(side_rot, side_rot.get_rect(center=(px + dx, py + dy)))
+
+        surface.blit(front_rot, front_rot.get_rect(center=(px, py)))
+
+    # ---- Båge-setup ----
+    widths = [font.size(ch)[0] for ch in text]
+    letter_spacing = 0  # lite tajtare, speciellt med båge
+
+    total_width = sum(widths) + letter_spacing * (len(text) - 1)
+
+    total_angle_deg = 30            # svag båge
+    total_angle = math.radians(total_angle_deg)
+
+    radius = total_width / total_angle
+
+    # Cirkelcentrum så att bågens mitt hamnar vid baseline_y
+    circle_center = (center_x, baseline_y + radius)
+
+    start_angle = -total_angle / 2.0
+
+    x_cursor = 0.0
+    for idx, ch in enumerate(text):
+        w = widths[idx]
+        char_center_x = x_cursor + w / 2.0
+        frac = char_center_x / total_width
+        angle = start_angle + frac * total_angle
+
+        if ch != " ":
+            draw_char_on_arc(ch, circle_center, radius, angle)
+
+        x_cursor += w + letter_spacing
+
+
+def draw_logo_mixtape_megaways(surface):
+
+    center_x = GRID_X + GRID_WIDTH // 2
+    target_arc_y = GRID_Y - 170
+    meg_y        = GRID_Y - 75
+
+    mix_text = "MIXTAPE"
+    meg_text = "MEGAWAYS"
+
+    mix_font = pygame.font.SysFont("arial", 110, bold=True)
+    meg_font = pygame.font.SysFont("arial", 60, bold=True)
+
+    # BEHÅLLER DINA FÄRGER
+    MIX_TOP = (150, 240, 255)
+    MIX_BOTTOM = (50, 90, 180)
+    MEG_TOP = (200, 250, 255)
+    MEG_BOTTOM = (80, 130, 210)
+
+    # NU: EXTREMT MÖRK 3D-FÄRG
+    side_color = (5, 10, 25)          # nästan svart blå — passar temat
+    outline_color = (0, 0, 0)
+
+    # Tydligare, men stadig 3D
+    depth_vec = (2, 2)
+    depth_len = 8
+
+    def apply_vertical_gradient(text_surf, top_col, bot_col):
+        w, h = text_surf.get_size()
+        grad = pygame.Surface((w, h), pygame.SRCALPHA)
+        for y in range(h):
+            t = y / h
+            r = int(top_col[0] * (1 - t) + bot_col[0] * t)
+            g = int(top_col[1] * (1 - t) + bot_col[1] * t)
+            b = int(top_col[2] * (1 - t) + bot_col[2] * t)
+            pygame.draw.line(grad, (r, g, b), (0, y), (w, y))
+        result = text_surf.copy()
+        result.blit(grad, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+        return result
+
+
+    # ----------- 3D FÖR HELA YTAN (inkl outline!) --------------
+    def extrude_3d(surface, img, cx, cy):
+        for i in range(depth_len, 0, -1):
+            dx = depth_vec[0] * i
+            dy = depth_vec[1] * i
+            rect = img.get_rect(center=(cx + dx, cy + dy))
+            surface.blit(img, rect)
+
+
+    # ============ MEGAWAYS ==============
+    def draw_3d_flat(text, font, cx, cy, top_col, bot_col):
+
+        base_white = font.render(text, True, (255, 255, 255))
+        colored = apply_vertical_gradient(base_white, top_col, bot_col)
+
+        # ---- SKAPA OUTLINE-LAGER ----
+        w, h = colored.get_size()
+        outline_surf = pygame.Surface((w + 8, h + 8), pygame.SRCALPHA)
+        ocx, ocy = (w + 8)//2, (h + 8)//2
+        for ox, oy in [(-2,0),(2,0),(0,-2),(0,2),(-2,-2),(-2,2),(2,-2),(2,2)]:
+            o = font.render(text, True, outline_color)
+            outline_surf.blit(o, o.get_rect(center=(ocx+ox, ocy+oy)))
+
+        outline_surf.blit(colored, colored.get_rect(center=(ocx, ocy)))
+
+        # ---- 3D EXTRUSION (NU ÄVEN OUTLINE!) ----
+        # Först gör vi ett mörkt lager av hela outline_surf
+        side_surf = outline_surf.copy()
+        side_surf.fill((side_color[0], side_color[1], side_color[2], 255),
+                       special_flags=pygame.BLEND_RGBA_MULT)
+
+        extrude_3d(surface, side_surf, cx, cy)
+
+        # ---- FRÄMRE LAGRET ----
+        surface.blit(outline_surf, outline_surf.get_rect(center=(cx, cy)))
+
+
+    # ============ MIXTAPE ==============
+    def draw_char_on_arc(ch, font, center, radius, angle, top_col, bot_col):
+        cx, cy = center
+        px = cx + radius * math.sin(angle)
+        py = cy - radius * math.cos(angle)
+        angle_deg = math.degrees(angle)
+
+        base_white = font.render(ch, True, (255,255,255))
+        colored = apply_vertical_gradient(base_white, top_col, bot_col)
+
+        w, h = colored.get_size()
+        outline_surf = pygame.Surface((w+8, h+8), pygame.SRCALPHA)
+        ocx, ocy = (w+8)//2, (h+8)//2
+        for ox, oy in [(-2,0),(2,0),(0,-2),(0,2),(-2,-2),(-2,2),(2,-2),(2,2)]:
+            o = font.render(ch, True, outline_color)
+            outline_surf.blit(o, o.get_rect(center=(ocx+ox, ocy+oy)))
+        outline_surf.blit(colored, colored.get_rect(center=(ocx,ocy)))
+
+        # Mörk 3D-version av hela bokstaven inkl outline
+        side_surf = outline_surf.copy()
+        side_surf.fill((side_color[0], side_color[1], side_color[2], 255),
+                       special_flags=pygame.BLEND_RGBA_MULT)
+
+        # rotera båda
+        front_rot = pygame.transform.rotozoom(outline_surf, -angle_deg, 1.0)
+        side_rot  = pygame.transform.rotozoom(side_surf,   -angle_deg, 1.0)
+
+        # extrudera outline + färg
+        for i in range(depth_len, 0, -1):
+            dx = depth_vec[0] * i
+            dy = depth_vec[1] * i
+            surface.blit(side_rot, side_rot.get_rect(center=(px+dx, py+dy)))
+
+        # främre lagret
+        surface.blit(front_rot, front_rot.get_rect(center=(px, py)))
+
+
+    # ========== BÅGEN ==========
+
+    letter_spacing = -5
+    widths = [mix_font.size(ch)[0] for ch in mix_text]
+    total_width = sum(widths) + letter_spacing * (len(widths)-1)
+
+    total_angle = math.radians(30)     # svag båge
+    radius = total_width / total_angle
+    circle_center = (center_x, target_arc_y + radius)
+    start_angle = -total_angle / 2
+
+    x = 0
+    for idx, ch in enumerate(mix_text):
+        w = widths[idx]
+        frac = (x + w/2) / total_width
+        angle = start_angle + frac * total_angle
+        draw_char_on_arc(ch, mix_font, circle_center, radius, angle,
+                         MIX_TOP, MIX_BOTTOM)
+        x += w + letter_spacing
+
+    # ---- MEGAWAYS ----
+    draw_3d_flat(meg_text, meg_font, center_x, meg_y, MEG_TOP, MEG_BOTTOM)
+
+
 
 
 def load_button_image(filename, max_w, max_h):
@@ -173,6 +434,7 @@ BG_BASE_IMG = load_image("bg_base.png", (WINDOW_WIDTH, WINDOW_HEIGHT))
 BG_FS_IMG = load_image("bg_fs.png", (WINDOW_WIDTH, WINDOW_HEIGHT))
 
 SPIN_BUTTON_IMG = load_image("spin_button.png", (140, 140))
+SPIN_BUTTON_IMG_PRESSED = load_image("spin_button_pressed.png", (140, 140))
 SPIN_BUTTON_IMG_DISABLED = load_image("spin_button_disabled.png", (140, 140))
 
 BUY_BUTTON_IMG = load_button_image("buy_button.png", 260, 100)
@@ -219,22 +481,29 @@ def draw_text(surface, text, x, y, font, color=WHITE, center=False):
 
 
 def draw_round_button(surface, center, radius, text, font, color,
-                      hover=False, disabled=False, img=None, img_disabled=None):
+                      hover=False, disabled=False, pressed=False,
+                      img=None, img_disabled=None, img_pressed=None):
     cx, cy = center
-    if disabled:
-        base_col = (90, 90, 90)
-    elif hover:
-        base_col = tuple(min(255, int(ch * 1.2)) for ch in color)
-    else:
-        base_col = color
-
     if img is not None:
-        img_to_use = img_disabled if disabled and img_disabled is not None else img
+        if disabled and img_disabled is not None:
+            img_to_use = img_disabled
+        elif pressed and img_pressed is not None:
+            img_to_use = img_pressed
+        else:
+            img_to_use = img
         rect = img_to_use.get_rect(center=center)
         surface.blit(img_to_use, rect)
     else:
+        if disabled:
+            base_col = (90, 90, 90)
+        elif hover:
+            base_col = tuple(min(255, int(ch * 1.2)) for ch in color)
+        else:
+            base_col = color
+
         pygame.draw.circle(surface, base_col, center, radius)
         pygame.draw.circle(surface, WHITE, center, radius, width=3)
+
 
 
 def draw_button(surface, rect, text, font, color,
@@ -256,6 +525,18 @@ def draw_button(surface, rect, text, font, color,
     if text:
         draw_text(surface, text, rect.centerx, rect.centery - 1, font, txt_col, center=True)
 
+def draw_paytable_icon(surface, center, radius, hover=False):
+    """Vit ihålig cirkel med ett 'i' inuti."""
+    line_width = 4 if hover else 3
+    color = WHITE
+
+    # Ihålig cirkel
+    pygame.draw.circle(surface, color, center, radius, width=line_width)
+
+    # Litet 'i' i mitten
+    text_surf = FONT_LARGE.render("i", True, color)
+    text_rect = text_surf.get_rect(center=center)
+    surface.blit(text_surf, text_rect)
 
 def find_winning_positions(grid, paytable, wild_reels=None):
     if grid is None:
@@ -300,7 +581,129 @@ def find_winning_positions(grid, paytable, wild_reels=None):
 
     return win_positions
 
+# ========================================================
+# PARTICLE SYSTEM – Global lists
+# ========================================================
 
+particles_logo = []
+particles_dust = []
+particles_win = []
+particles_fs_strips = []
+
+
+# ========================================================
+# LOGO SPARKS (små elektriska gnistor)
+# ========================================================
+def spawn_logo_sparks(center_x, y):
+    for _ in range(3):
+        angle = random.uniform(-math.pi, math.pi)
+        speed = random.uniform(0.3, 0.8)
+
+        spread_x = random.uniform(-260, 260)   # istället för 120
+        spread_y = random.uniform(-90, 90)     # istället för 40
+
+        particles_logo.append({
+            "x": center_x + spread_x,
+            "y": y + spread_y,
+            "vx": math.cos(angle) * speed,
+            "vy": math.sin(angle) * speed,
+            "life": random.uniform(0.15, 0.25),
+            "size": random.randint(2, 4),
+            "color": (0, 0, 0)
+        })
+
+
+# ========================================================
+# NEON DUST – konstant glitter i bakgrunden
+# ========================================================
+def spawn_neon_dust(game_mode):
+    color = (120, 220, 255) if game_mode == "base" else (255, 220, 90)
+    for _ in range(2):  # light density
+        particles_dust.append({
+            "x": random.uniform(0, BASE_WIDTH),
+            "y": random.uniform(0, BASE_HEIGHT),
+            "vx": 0,
+            "vy": random.uniform(0.1, 0.4),
+            "life": random.uniform(1.2, 2.0),
+            "size": random.randint(1, 3),
+            "color": color
+        })
+
+
+# ========================================================
+# WIN SPARKS – liten explosion i en vinnande cell
+# ========================================================
+def spawn_win_sparks(x, y):
+    for _ in range(10):
+        angle = random.uniform(0, math.pi * 2)
+        speed = random.uniform(1.0, 3.0)
+        particles_win.append({
+            "x": x,
+            "y": y,
+            "vx": math.cos(angle) * speed,
+            "vy": math.sin(angle) * speed,
+            "life": random.uniform(0.2, 0.4),
+            "size": random.randint(2, 3),
+            "color": (255, 255, 180)
+        })
+
+
+# ========================================================
+# FS Neon Strips (bara i free spins)
+# ========================================================
+def draw_fs_neon_strips(surface):
+    for i in range(3):
+        y = GRID_Y - 40 - i * 20
+        alpha = 120 - i * 30
+        strip = pygame.Surface((GRID_WIDTH, 12), pygame.SRCALPHA)
+        pygame.draw.rect(strip, (120, 220, 255, alpha), (0, 0, GRID_WIDTH, 12))
+        surface.blit(strip, (GRID_X, y))
+
+
+# ========================================================
+# UPDATE + DRAW ALL PARTICLES
+# ========================================================
+def update_and_draw_particles(surface):
+    now_dt = 1/60
+
+    # ---- LOGO SPARKS ----
+    dead = []
+    for p in particles_logo:
+        p["life"] -= now_dt
+        if p["life"] <= 0:
+            dead.append(p)
+            continue
+        p["x"] += p["vx"]
+        p["y"] += p["vy"]
+        pygame.draw.circle(surface, p["color"], (int(p["x"]), int(p["y"])), p["size"])
+    for p in dead:
+        particles_logo.remove(p)
+
+    # ---- NEON DUST ----
+    dead = []
+    for p in particles_dust:
+        p["life"] -= now_dt
+        if p["life"] <= 0:
+            dead.append(p)
+            continue
+        p["y"] += p["vy"]
+        pygame.draw.circle(surface, p["color"], (int(p["x"]), int(p["y"])), p["size"])
+    for p in dead:
+        particles_dust.remove(p)
+
+    # ---- WIN SPARKS ----
+    dead = []
+    for p in particles_win:
+        p["life"] -= now_dt
+        if p["life"] <= 0:
+            dead.append(p)
+            continue
+        p["x"] += p["vx"]
+        p["y"] += p["vy"]
+        pygame.draw.circle(surface, p["color"], (int(p["x"]), int(p["y"])), p["size"])
+    for p in dead:
+        particles_win.remove(p)
+    
 def draw_grid(surface, grid, font, win_positions=None, time_ms=0,
               wild_reels=None, fs_mults=None,
               wild_drop_start_times=None):
@@ -429,6 +832,8 @@ def draw_grid(surface, grid, font, win_positions=None, time_ms=0,
             if (r, c) in win_positions:
                 if blink_phase == 0:
                     overlay_col = (255, 255, 255, 110)
+                    spawn_win_sparks(x + CELL_SIZE//2,
+                 y + CELL_SIZE//2)
                 else:
                     overlay_col = (255, 240, 120, 60)
 
@@ -461,15 +866,19 @@ def draw_grid(surface, grid, font, win_positions=None, time_ms=0,
                 border_bottom_right_radius=br,
             )
 
-            if c in wild_reels and c in wild_drop_start_times:
-                elapsed = max(0, time_ms - wild_drop_start_times[c])
-                visible_rows = min(4, 1 + elapsed // WILD_DROP_STEP_MS)
+            if c in wild_reels:
+                # Wild reel ska ALLTID visa sina W1–W4 bilder
+                if c in wild_drop_start_times:
+                    elapsed = max(0, time_ms - wild_drop_start_times[c])
+                    visible_rows = min(4, 1 + elapsed // WILD_DROP_STEP_MS)
+                else:
+                    # Ingen drop – visa full wild reel direkt
+                    visible_rows = 4
+
                 if r < visible_rows:
-                    sym_key = f"W{r + 1}"
+                    sym_key = f"W{r+1}"
                 else:
                     sym_key = grid[r][c]
-            elif c in wild_reels:
-                sym_key = grid[r][c]
             else:
                 sym_key = grid[r][c]
 
@@ -542,6 +951,9 @@ def main():
     render_offset = (0, 0)
 
     # ---------- Spelstatus ----------
+    paytable_visible = False
+    particles = []
+    last_particle_spawn = 0
     balance = 1000.0
     bet_index = 0
     bet = BET_LEVELS[bet_index]
@@ -578,6 +990,7 @@ def main():
     fs_spins_left = 0
     fs_total_win = 0.0
     fs_total_mult = 0.0
+    fs_last_spin_win = 0.0  # NY: vinst på senaste free spin
     current_wild_reels = []
     current_wild_mults = {}
 
@@ -593,6 +1006,7 @@ def main():
 
     bet_minus_held = False
     bet_plus_held = False
+    spin_held = False 
 
     forced_scatter_spin = False
 
@@ -603,7 +1017,7 @@ def main():
     # ------------------- LAYOUT (bas-koords) -------------------
 
     spin_radius = 70
-    spin_center = (WINDOW_WIDTH - 220, WINDOW_HEIGHT - 200)
+    spin_center = (WINDOW_WIDTH - 230, WINDOW_HEIGHT - 270)
     spin_button_rect = pygame.Rect(
         spin_center[0] - spin_radius,
         spin_center[1] - spin_radius,
@@ -618,14 +1032,14 @@ def main():
     plus_w, plus_h = BET_PLUS_IMG.get_size()
 
     bet_minus_rect = pygame.Rect(
-        spin_center[0] - 110,
-        spin_center[1] + spin_radius,
+        spin_center[0] - 108,
+        spin_center[1] + spin_radius-5,
         minus_w,
         minus_h,
     )
     bet_plus_rect = pygame.Rect(
-        spin_center[0] + 30,
-        spin_center[1] + spin_radius,
+        spin_center[0] + 28,
+        spin_center[1] + spin_radius -5,
         plus_w,
         plus_h,
     )
@@ -636,6 +1050,13 @@ def main():
         buy_w,
         buy_h,
     )
+
+    paytable_button_rect = pygame.Rect(
+        0, 0,
+        PAYTABLE_BTN_RADIUS * 2,
+        PAYTABLE_BTN_RADIUS * 2,
+    )
+    paytable_button_rect.center = (50, 50)  # uppe vänster i bas-koordinater
 
     confirm_width, confirm_height = 500, 260
     confirm_rect = pygame.Rect(
@@ -656,6 +1077,9 @@ def main():
         130,
         50,
     )
+    # <-- NY: close-knapp för paytable
+    paytable_close_rect = None
+
 
     running = True
     while running:
@@ -749,6 +1173,18 @@ def main():
                         continue
 
                     continue
+                
+                # Stäng paytable via rött kryss
+                if paytable_visible and paytable_close_rect is not None:
+                    if paytable_close_rect.collidepoint(mx, my):
+                        paytable_visible = False
+                        continue
+
+
+                # Paytable-knapp (kan öppnas närsomhelst)
+                if paytable_button_rect.collidepoint(mx, my):
+                    paytable_visible = not paytable_visible
+                    continue
 
                 # --- Bet-knappar (respektera min/max visuellt & logiskt) ---
                 can_change_bet = (
@@ -791,6 +1227,7 @@ def main():
                         if balance < bet:
                             message = "För lite saldo för att spinna."
                         else:
+                            spin_held = True      # <-- NY
                             balance -= bet
                             is_spinning = True
                             spin_result_applied = False
@@ -811,9 +1248,11 @@ def main():
                             ]
                             last_spin_anim_update = now
 
+
             elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                 bet_minus_held = False
                 bet_plus_held = False
+                spin_held = False  
 
         # ---------- AUTOSPIN FÖR FS ----------
         if (game_mode == "fs"
@@ -921,6 +1360,7 @@ def main():
                         fs_spins_left = N_FREE_SPINS
                         fs_total_win = 0.0
                         fs_total_mult = 0.0
+                        fs_last_spin_win = 0.0  # NY
                         current_wild_reels = []
                         current_wild_mults = {}
                         wild_drop_start_times = {}
@@ -971,6 +1411,7 @@ def main():
                     fs_total_win += spin_win
                     balance += spin_win
                     last_win = spin_win
+                    fs_last_spin_win = spin_win  # NY: denna spinnen i bonusen
 
                     last_win_positions = find_winning_positions(
                         current_grid, paytable, wild_reels=current_wild_reels
@@ -1032,64 +1473,119 @@ def main():
 
         # ---------- RITNING PÅ game_surface ----------
         surface = game_surface
-
         if game_mode == "fs" and BG_FS_IMG is not None:
             surface.blit(BG_FS_IMG, (0, 0))
+            spawn_neon_dust(game_mode="fs")
         elif game_mode == "base" and BG_BASE_IMG is not None:
             surface.blit(BG_BASE_IMG, (0, 0))
+            spawn_neon_dust(game_mode="base")
         else:
             surface.fill(BG_FS if game_mode == "fs" else BG_BASE)
 
         if game_mode == "fs":
-            draw_text(
-                surface,
-                "MEGAWAYS – FREE SPINS",
-                WINDOW_WIDTH // 2,
-                50,
-                FONT_HUGE,
-                YELLOW,
-                center=True,
-            )
-        else:
-            draw_text(
-                surface,
-                "MEGAWAYS SLOT",
-                WINDOW_WIDTH // 2,
-                50,
-                FONT_HUGE,
-                CYAN,
-                center=True,
-            )
+            draw_bonus_logo_electric(surface)
+            spawn_logo_sparks(center_x=GRID_X + GRID_WIDTH // 2,
+                  y=GRID_Y - 130)
 
-        draw_text(
-            surface,
-            f"Senaste vinst: {last_win:.2f}",
-            WINDOW_WIDTH // 2,
-            100,
-            FONT_MEDIUM,
-            WHITE,
-            center=True,
-        )
+        else:
+            draw_logo_mixtape_megaways(surface)
+            spawn_logo_sparks(center_x=GRID_X + GRID_WIDTH // 2,
+                  y=GRID_Y - 170)
+
 
         if game_mode == "fs":
-            left_x = 40
-            base_y = 150
+            left_x = GRID_X
+            base_y = GRID_Y
             if bonus_state in ("ready_to_start", "running", "finished_waiting"):
-                draw_text(surface, "BONUSLÄGE!", left_x, base_y, FONT_MEDIUM, YELLOW)
-                draw_text(surface, f"FS spins kvar: {fs_spins_left}", left_x, base_y + 40, FONT_MEDIUM, YELLOW)
-                draw_text(surface, f"FS total vinst: {fs_total_win:.2f}", left_x, base_y + 80, FONT_MEDIUM, YELLOW)
-                if current_wild_reels and bonus_state == "running":
-                    reels_str = ", ".join(
-                        f"{r+1}:x{current_wild_mults.get(r, 1)}" for r in current_wild_reels
-                    )
-                    draw_text(
-                        surface,
-                        f"Wild reels (hjul:mult): {reels_str}",
-                        left_x,
-                        base_y + 120,
-                        FONT_SMALL,
-                        ORANGE,
-                    )
+
+                # --- Cirkel: SPINS KVAR (samma färgtema som grid) ---
+                circle_center = (left_x -140, base_y+ 70)
+                circle_radius = 65
+
+                # Bas
+                pygame.draw.circle(surface, (25, 25, 45), circle_center, circle_radius)
+                # Highlight upptill
+                circle_highlight = pygame.Surface((circle_radius*2, circle_radius*2), pygame.SRCALPHA)
+                pygame.draw.circle(
+                    circle_highlight,
+                    (255, 255, 255, 45),
+                    (circle_radius, circle_radius),
+                    circle_radius
+                )
+                # Klipp bort nedre halvan så highlighten bara är upptill
+                pygame.draw.rect(
+                    circle_highlight,
+                    (0, 0, 0, 0),
+                    pygame.Rect(0, circle_radius, circle_radius*2, circle_radius)
+                )
+                surface.blit(circle_highlight, (circle_center[0]-circle_radius, circle_center[1]-circle_radius))
+                # Kant
+                pygame.draw.circle(surface, (120, 220, 255), circle_center, circle_radius, 3)
+
+                draw_text(surface, "SPINS KVAR", circle_center[0], circle_center[1] - 18,
+                          FONT_SMALL, GREY, center=True)
+                draw_text(surface, str(fs_spins_left), circle_center[0], circle_center[1] + 12,
+                          FONT_LARGE, WHITE, center=True)
+
+                # --- Ruta: TOTAL BONUSVINST (grid-style box) ---
+                total_rect = pygame.Rect(left_x + 720, base_y, 300, 70)
+                # Skugga
+                total_shadow = total_rect.move(4, 6)
+                shadow_surf = pygame.Surface(total_rect.size, pygame.SRCALPHA)
+                pygame.draw.rect(
+                    shadow_surf,
+                    (0, 0, 0, 120),
+                    pygame.Rect(0, 0, total_rect.width, total_rect.height),
+                    border_radius=18,
+                )
+                surface.blit(shadow_surf, total_shadow.topleft)
+                # Bas
+                pygame.draw.rect(surface, (25, 25, 45), total_rect, border_radius=18)
+                # Highlight upptill
+                total_highlight = pygame.Surface(total_rect.size, pygame.SRCALPHA)
+                pygame.draw.rect(
+                    total_highlight,
+                    (255, 255, 255, 35),
+                    pygame.Rect(0, 0, total_rect.width, total_rect.height // 2),
+                    border_radius=18,
+                )
+                surface.blit(total_highlight, total_rect.topleft)
+                # Kant
+                pygame.draw.rect(surface, (120, 220, 255), total_rect, width=2, border_radius=18)
+
+                draw_text(surface, "TOTAL BONUSVINST", total_rect.centerx,
+                          total_rect.top + 15, FONT_SMALL, GREY, center=True)
+                draw_text(surface, f"{fs_total_win:.2f}", total_rect.centerx,
+                          total_rect.bottom - 26, FONT_MEDIUM, WHITE, center=True)
+
+                # --- Ruta: DETTA FS-SPINN (grid-style box) ---
+                spin_rect = pygame.Rect(left_x + 720, base_y + 90, 300, 70)
+                spin_shadow = spin_rect.move(4, 6)
+                spin_shadow_surf = pygame.Surface(spin_rect.size, pygame.SRCALPHA)
+                pygame.draw.rect(
+                    spin_shadow_surf,
+                    (0, 0, 0, 120),
+                    pygame.Rect(0, 0, spin_rect.width, spin_rect.height),
+                    border_radius=18,
+                )
+                surface.blit(spin_shadow_surf, spin_shadow.topleft)
+
+                pygame.draw.rect(surface, (25, 25, 45), spin_rect, border_radius=18)
+                spin_highlight = pygame.Surface(spin_rect.size, pygame.SRCALPHA)
+                pygame.draw.rect(
+                    spin_highlight,
+                    (255, 255, 255, 35),
+                    pygame.Rect(0, 0, spin_rect.width, spin_rect.height // 2),
+                    border_radius=18,
+                )
+                surface.blit(spin_highlight, spin_rect.topleft)
+                pygame.draw.rect(surface, (120, 220, 255), spin_rect, width=2, border_radius=18)
+
+                draw_text(surface, "DETTA SPINN", spin_rect.centerx,
+                          spin_rect.top + 15, FONT_SMALL, GREY, center=True)
+                draw_text(surface, f"{fs_last_spin_win:.2f}", spin_rect.centerx,
+                          spin_rect.bottom - 26, FONT_MEDIUM, WHITE, center=True)
+
 
         now_ms = pygame.time.get_ticks()
         active_wild_reels = set(wild_drop_start_times.keys()) if (game_mode == "fs" and bonus_state == "running") else None
@@ -1119,7 +1615,7 @@ def main():
             wild_drop_start_times=wild_drop_start_times,
         )
 
-        draw_text(surface, f"Bet: {bet:.2f}", bet_label_pos[0], bet_label_pos[1], FONT_MEDIUM, WHITE, center=True)
+        #draw_text(surface, f"Bet: {bet:.2f}", bet_label_pos[0], bet_label_pos[1], FONT_MEDIUM, WHITE, center=True)
 
         # --- Hover i bas-koords ---
         wx, wy = pygame.mouse.get_pos()
@@ -1189,10 +1685,19 @@ def main():
         # Spin-knapp
         hover_spin = spin_button_rect.collidepoint(mouse_pos)
         spin_label = "SPIN" if game_mode == "base" else "FS"
-        spin_disabled = (is_spinning or big_win_active
-                         or (game_mode == "fs")
-                         or bonus_state != "none"
-                         or buy_confirm_visible)
+
+        # Disabled när:
+        #  - bonus overlay / FS
+        #  - buy-confirm
+        #  - i base och inte råd att spinna
+        spin_disabled = (
+            big_win_active
+            or buy_confirm_visible
+            or bonus_state != "none"
+            or (game_mode == "fs")
+            or (game_mode == "base" and balance < bet)
+        )
+
         draw_round_button(
             surface,
             spin_center,
@@ -1202,8 +1707,10 @@ def main():
             ORANGE,
             hover=hover_spin and not spin_disabled,
             disabled=spin_disabled,
+            pressed=spin_held and not spin_disabled,     # <-- NY
             img=SPIN_BUTTON_IMG,
-            img_disabled=SPIN_BUTTON_IMG_DISABLED,
+            img_disabled=SPIN_BUTTON_IMG_DISABLED,       # disabled-bild
+            img_pressed=SPIN_BUTTON_IMG_PRESSED,         # pressed-bild
         )
 
         # Buy-knapp
@@ -1238,25 +1745,223 @@ def main():
             img_disabled=None,
         )
 
-        draw_text(
+        # Paytable-knapp (vit info-cirkel uppe till vänster)
+        hover_paytable = paytable_button_rect.collidepoint(mouse_pos)
+        draw_paytable_icon(
             surface,
-            f"Saldo: {balance:.2f}",
-            30,
-            WINDOW_HEIGHT - 40,
-            FONT_MEDIUM,
-            WHITE,
-            center=False,
+            paytable_button_rect.center,
+            PAYTABLE_BTN_RADIUS,
+            hover=hover_paytable
         )
 
-        if message:
+        # --- Bottom-bar i samma stil som grid-panelen ---
+        bottom_margin_x = 15
+        bottom_margin_y = 30
+        bottom_height = 52
+
+        bottom_rect = pygame.Rect(
+            bottom_margin_x,
+            WINDOW_HEIGHT - bottom_height - bottom_margin_y,
+            WINDOW_WIDTH - 2 * bottom_margin_x,
+            bottom_height,
+        )
+
+        # Skugga
+        bottom_shadow = bottom_rect.move(6, 6)
+        bottom_shadow_surf = pygame.Surface(bottom_rect.size, pygame.SRCALPHA)
+        pygame.draw.rect(
+            bottom_shadow_surf,
+            (0, 0, 0, 140),
+            pygame.Rect(0, 0, bottom_rect.width, bottom_rect.height),
+            border_radius=24,
+        )
+        surface.blit(bottom_shadow_surf, bottom_shadow.topleft)
+
+        # Baspanel
+        pygame.draw.rect(surface, (10, 10, 30), bottom_rect, border_radius=24)
+
+        # Glass/highlight-lager
+        inner_rect = bottom_rect.inflate(-8, -8)
+        glass_surf = pygame.Surface(inner_rect.size, pygame.SRCALPHA)
+        pygame.draw.rect(
+            glass_surf,
+            (80, 180, 255, 70),
+            pygame.Rect(0, 0, inner_rect.width, inner_rect.height),
+            border_radius=20,
+        )
+        # Highlight upptill
+        top_highlight = pygame.Surface(inner_rect.size, pygame.SRCALPHA)
+        pygame.draw.rect(
+            top_highlight,
+            (255, 255, 255, 40),
+            pygame.Rect(0, 0, inner_rect.width, inner_rect.height // 2),
+            border_radius=20,
+        )
+        glass_surf.blit(top_highlight, (0, 0), special_flags=pygame.BLEND_RGBA_ADD)
+
+        # Kant
+        pygame.draw.rect(
+            glass_surf,
+            (120, 220, 255, 160),
+            pygame.Rect(0, 0, inner_rect.width, inner_rect.height),
+            width=2,
+            border_radius=20,
+        )
+
+        surface.blit(glass_surf, inner_rect.topleft)
+
+        # --- Texter inuti bottom-bar ---
+        center_y = inner_rect.centery
+
+        # Saldo (vänster)
+        saldo_x = inner_rect.left + 180
+        draw_text(surface, f"Saldo: {balance:.2f}", saldo_x, center_y,
+                  FONT_SMALL, WHITE, center=True)
+
+        # Senaste vinst (mitten)
+        last_win_x = inner_rect.centerx
+        draw_text(surface, f"Senaste vinst: {last_win:.2f}", last_win_x, center_y,
+                  FONT_SMALL, WHITE, center=True)
+
+        # Bet/insats (höger)
+        bet_x = inner_rect.right - 180
+        draw_text(surface, f"Insats: {bet:.2f}", bet_x, center_y ,
+                  FONT_SMALL, WHITE, center=True)
+
+        if paytable_visible:
+            # Bakgrund overlay 50% svart
+            overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
+            overlay.fill((0, 0, 0, 160))
+            surface.blit(overlay, (0, 0))
+
+            # Panel
+            panel_w, panel_h = 1000, 650
+            panel_x = (WINDOW_WIDTH - panel_w) // 2
+            panel_y = (WINDOW_HEIGHT - panel_h) // 2
+
+            panel = pygame.Surface((panel_w, panel_h), pygame.SRCALPHA)
+            pygame.draw.rect(panel, (20, 20, 40), (0, 0, panel_w, panel_h), border_radius=20)
+            pygame.draw.rect(panel, CYAN, (0, 0, panel_w, panel_h), width=3, border_radius=20)
+            surface.blit(panel, (panel_x, panel_y))
+
+                        # --- Rött kryss uppe till höger på panelen ---
+            close_size = 34
+            paytable_close_rect = pygame.Rect(
+                panel_x + panel_w - close_size - 16,
+                panel_y + 16,
+                close_size,
+                close_size,
+            )
+
+            close_hover = paytable_close_rect.collidepoint(mouse_pos)
+            base_col = (200, 60, 60) if not close_hover else (255, 100, 100)
+
+
+            # Själva X:et
+            cx, cy = paytable_close_rect.center
+            r = close_size // 2 - 6
+            thickness = 4
+            pygame.draw.line(surface, base_col, (cx - r, cy - r), (cx + r, cy + r), thickness)
+            pygame.draw.line(surface, base_col, (cx - r, cy + r), (cx + r, cy - r), thickness)
+
+            # Titel
+            draw_text(surface, "PAYTABLE", panel_x + panel_w // 2, panel_y + 40,
+                      FONT_LARGE, WHITE, center=True)
+
+            # --- Samla alla betalande symboler (exkl. scatter & wild) ---
+            pay_syms = []
+            for sym in SYMBOLS:
+                if sym in ("S", "W"):
+                    continue
+                if any((sym, n) in paytable for n in (3, 4, 5, 6)):
+                    pay_syms.append(sym)
+
+            # Layout liknande bilden: 3 kolumner, flera rader
+            cols = 3
+            cell_w = panel_w // cols
+            cell_h = 150
+            start_y = panel_y + 100
+
+            for idx, sym in enumerate(pay_syms):
+                col = idx % cols
+                row = idx // cols
+
+                cell_x = panel_x + col * cell_w
+                cell_y = start_y + row * cell_h
+
+                center_x = cell_x + cell_w // 2
+
+                # Symbol-bild högst upp i cellen
+                img = SYMBOL_IMAGES.get(sym)
+                if img is not None:
+                    img_rect = img.get_rect(center=(center_x, cell_y + 35))
+                    surface.blit(img, img_rect)
+                else:
+                    # fallback: bokstav
+                    draw_text(surface, sym, center_x, cell_y + 35, FONT_LARGE, WHITE, center=True)
+
+                # Payouts 6x,5x,4x,3x under bilden
+                text_x = cell_x + 127
+                line_y = cell_y + 75
+
+                for multi in (6, 5, 4, 3):
+                    if (sym, multi) in paytable:
+                        val = paytable[(sym, multi)]
+                        draw_text(
+                            surface,
+                            f"{multi}x = {val:.2f}",
+                            text_x,
+                            line_y,
+                            FONT_SMALL,
+                            GREY
+                        )
+                        line_y += 22
+
+            # --- Scatter info ---
+            '''
+            info_y = panel_y + panel_h - 140
             draw_text(
                 surface,
-                message,
-                WINDOW_WIDTH // 2,
-                WINDOW_HEIGHT - 40,
+                "3x SCATTERS TRIGGAR FREE SPINS",
+                panel_x + 40,
+                info_y,
+                FONT_MEDIUM,
+                YELLOW
+            )
+            '''
+            # --- Max win info ---
+            '''
+            draw_text(
+                surface,
+                f"MAX WIN: {MAX_WIN_MULT:.0f}x",
+                panel_x + 40,
+                info_y + 40,
+                FONT_MEDIUM,
+                WHITE
+            )
+            '''
+
+            # --- Regeltext längst ner (som på bilden) ---
+            rule_line1 = "MATCH 3, 4, 5 OR 6 SYMBOLS ACROSS ADJACENT REELS"
+            rule_line2 = "STARTING FROM LEFTMOST REEL, TO ACHIEVE A WIN"
+
+            draw_text(
+                surface,
+                rule_line1,
+                panel_x + panel_w // 2,
+                panel_y + panel_h - 60,
                 FONT_SMALL,
                 GREY,
-                center=True,
+                center=True
+            )
+            draw_text(
+                surface,
+                rule_line2,
+                panel_x + panel_w // 2,
+                panel_y + panel_h - 35,
+                FONT_SMALL,
+                GREY,
+                center=True
             )
 
         if bonus_state == "running" and now < retrigger_overlay_until:
@@ -1365,6 +2070,7 @@ def main():
                     fs_spins_left = 0
                     fs_total_win = 0.0
                     fs_total_mult = 0.0
+                    fs_last_spin_win = 0.0  # NY
                     current_wild_reels = []
                     current_wild_mults = {}
                     wild_drop_start_times = {}
@@ -1405,7 +2111,8 @@ def main():
                           big_font, YELLOW, center=True)
                 draw_text(surface, f"{last_win:.2f}", WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 20,
                           FONT_LARGE, WHITE, center=True)
-
+        # RITA PARTIKLAR ALLRA SIST (ovanför allt annat)
+        update_and_draw_particles(surface)
         # ---------- SKALA TILL FÖNSTRET ----------
         window_w, window_h = screen.get_size()
 
