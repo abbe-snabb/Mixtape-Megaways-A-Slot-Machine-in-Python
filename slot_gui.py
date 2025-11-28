@@ -76,7 +76,7 @@ TEXT = {                                                  # <-- NY
         "FS_TOTAL_WIN": "TOTAL BONUSVINST",
         "FS_THIS_SPIN": "DETTA SPINN",
         "PAYTABLE_TITLE": "Vinsttabell",
-        "RULE_LINE1": "MATCHA 3, 4, 5 ELLER 6 SYMBOLER PÅ INTILLIGGANDE HJUL",
+        "RULE_LINE1": "MATCHA 3, 4 ELLER 5 SYMBOLER PÅ INTILLIGGANDE HJUL",
         "RULE_LINE2": "MED START FRÅN FÖRSTA HJULET FÖR ATT VINNA",
         "INFO_TITLE": "INFO",
         "INFO_SCATTERS": "3 SCATTER-symboler triggar free spins.",
@@ -101,7 +101,7 @@ TEXT = {                                                  # <-- NY
         "FS_TOTAL_WIN": "TOTAL BONUS WIN",
         "FS_THIS_SPIN": "THIS SPIN",
         "PAYTABLE_TITLE": "PAYTABLE",
-        "RULE_LINE1": "MATCH 3, 4, 5 OR 6 SYMBOLS ON ADJACENT REELS",
+        "RULE_LINE1": "MATCH 3, 4 or 5 SYMBOLS ON ADJACENT REELS",
         "RULE_LINE2": "STARTING FROM THE LEFTMOST REEL TO WIN",
         "INFO_TITLE": "INFO",
         "INFO_SCATTERS": "3 SCATTER symbols trigger free spins.",
@@ -126,7 +126,7 @@ TEXT = {                                                  # <-- NY
         "FS_TOTAL_WIN": "GESAMT BONUSGEWINN",
         "FS_THIS_SPIN": "DIESER SPIN",
         "PAYTABLE_TITLE": "GEWINNTABELLE",
-        "RULE_LINE1": "TREFFE 3, 4, 5 ODER 6 SYMBOLE AUF BENACHBARTEN WALZEN",
+        "RULE_LINE1": "TREFFE 3, 4 ODER 5 SYMBOLE AUF BENACHBARTEN WALZEN",
         "RULE_LINE2": "BEGINNEND AUF DER LINKEN WALZE, UM ZU GEWINNEN",
         "INFO_TITLE": "INFO",
         "INFO_SCATTERS": "3 SCATTER-Symbole lösen Freispiele aus.",
@@ -151,7 +151,7 @@ TEXT = {                                                  # <-- NY
         "FS_TOTAL_WIN": "GAIN TOTAL BONUS",
         "FS_THIS_SPIN": "CE TOUR",
         "PAYTABLE_TITLE": "TABLE DE GAINS",
-        "RULE_LINE1": "ALIGNEZ 3, 4, 5 OU 6 SYMBOLES SUR DES ROULEAUX ADJACENTS",
+        "RULE_LINE1": "ALIGNEZ 3, 4 OU 5 SYMBOLES SUR DES ROULEAUX ADJACENTS",
         "RULE_LINE2": "À PARTIR DU ROULEAU LE PLUS À GAUCHE POUR GAGNER",
         "INFO_TITLE": "INFO",
         "INFO_SCATTERS": "3 symboles SCATTER déclenchent les free spins.",
@@ -176,7 +176,7 @@ TEXT = {                                                  # <-- NY
         "FS_TOTAL_WIN": "GANANCIA TOTAL DEL BONO",
         "FS_THIS_SPIN": "ESTA TIRADA",
         "PAYTABLE_TITLE": "TABLA DE PAGOS",
-        "RULE_LINE1": "ALINEA 3, 4, 5 O 6 SÍMBOLOS EN RODILLOS ADYACENTES",
+        "RULE_LINE1": "ALINEA 3, 4 O 5 SÍMBOLOS EN RODILLOS ADYACENTES",
         "RULE_LINE2": "EMPEZANDO DESDE EL RODILLO MÁS A LA IZQUIERDA PARA GANAR",
         "INFO_TITLE": "INFO",
         "INFO_SCATTERS": "3 símbolos SCATTER activan los free spins.",
@@ -243,7 +243,7 @@ RETRIGGER_OVERLAY_DURATION_MS = 2200
 # Spin-timing
 SPIN_FIRST_STOP_MS = 900
 SPIN_REEL_STEP_MS = 450
-SPIN_SYMBOL_CHANGE_MS = 75
+SPIN_SYMBOL_CHANGE_MS = 50 # <-- CHANGED: smoother reel updates
 
 # Wild-reel drop-animation
 WILD_DROP_STEP_MS = 300
@@ -346,35 +346,53 @@ def draw_bonus_logo_electric(surface):
     font = pygame.font.SysFont("arial", 64, bold=True)
 
     # Bonus colorway
-    TOP = (255, 220, 0)          # gul
-    MID = (120, 220, 255)        # ljusblå
-    BOT = (60, 120, 255)         # blå
+    TOP = (255, 126, 0)          # brandgul
+    MID = (252, 214, 10)        # gul
+    BOT = (0, 255, 255)            # cyan
     side_color = (5, 10, 25)     # nästan svart-blå
     outline_color = (0, 0, 0)
 
     depth_vec = (2, 2)
     depth_len = 8
 
+
+    def smoothstep(t: float) -> float:
+        # 3t^2 - 2t^3
+        return t * t * (3 - 2 * t)
+
     def vertical_three_gradient(surface_in):
         w, h = surface_in.get_size()
         out = pygame.Surface((w, h), pygame.SRCALPHA)
+        if h <= 1:
+            return surface_in.copy()
+
+        MID_POS = 0.38  # position (0–1) where MID is placed; < 0.5 = more room for MID→BOT
+
         for y in range(h):
-            t = y / h
-            if t < 0.5:
-                t2 = t * 2
+            t = y / (h - 1)  # 0..1
+
+            if t <= MID_POS:
+                # TOP -> MID from t in [0, MID_POS]
+                t2 = t / MID_POS              # normalize to 0..1
+                t2 = smoothstep(t2)
                 col = (
                     int(TOP[0] * (1 - t2) + MID[0] * t2),
                     int(TOP[1] * (1 - t2) + MID[1] * t2),
                     int(TOP[2] * (1 - t2) + MID[2] * t2),
                 )
             else:
-                t2 = (t - 0.5) * 2
+                # MID -> BOT from t in [MID_POS, 1]
+                t2 = (t - MID_POS) / (1 - MID_POS)  # normalize to 0..1
+                # bias toward BOT a bit more: sqrt makes us reach BOT earlier
+                t2 = smoothstep(t2) ** 0.7
                 col = (
                     int(MID[0] * (1 - t2) + BOT[0] * t2),
                     int(MID[1] * (1 - t2) + BOT[1] * t2),
                     int(MID[2] * (1 - t2) + BOT[2] * t2),
                 )
+
             pygame.draw.line(out, col, (0, y), (w, y))
+
         result = surface_in.copy()
         result.blit(out, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
         return result
@@ -891,7 +909,9 @@ def update_and_draw_fg_particles(surface):       # <-- NY
     
 def draw_grid(surface, grid, font, win_positions=None, time_ms=0,
               wild_reels=None, fs_mults=None,
-              wild_drop_start_times=None):
+              wild_drop_start_times=None,
+              is_spinning=False,                 # <-- NEW
+              reel_stop_times=None):             # <-- NEW
     if grid is None:
         return
 
@@ -962,7 +982,11 @@ def draw_grid(surface, grid, font, win_positions=None, time_ms=0,
             x = GRID_X + c * CELL_SIZE
             y = GRID_Y + r * CELL_SIZE
             cell_rect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
-
+            # Är det här hjulet fortfarande i spin-fasen?      # <-- NEW
+            reel_spinning = False
+            if is_spinning and reel_stop_times is not None:
+                if c < len(reel_stop_times) and time_ms < reel_stop_times[c]:
+                    reel_spinning = True
             if c in wild_reels:
                 base_bg = (30, 55, 100)
             else:
@@ -1070,14 +1094,47 @@ def draw_grid(surface, grid, font, win_positions=None, time_ms=0,
             inner_rect = cell_rect.inflate(-18, -18)
             img = SYMBOL_IMAGES.get(sym_key)
             if img is not None:
-                img_rect = img.get_rect(center=inner_rect.center)
-                surface.blit(img, img_rect)
+                if reel_spinning:
+                    # --- MOTION BLUR FÖR PNG-SYMBOLER ---       # <-- NEW
+                    # Rita samma symbol flera gånger med lite offset + alpha
+                    offsets_and_alpha = [(-8, 80), (0, 180), (8, 80)]
+                    for dy, alpha in offsets_and_alpha:
+                        tmp = img.copy()
+                        tmp.set_alpha(alpha)
+                        tmp_rect = tmp.get_rect(
+                            center=(inner_rect.centerx, inner_rect.centery + dy)
+                        )
+                        surface.blit(tmp, tmp_rect)
+                else:
+                    img_rect = img.get_rect(center=inner_rect.center)
+                    surface.blit(img, img_rect)
             else:
+                # Fallback om inga PNGs finns
                 sym_col = SYMBOL_COLORS.get(sym_key, WHITE)
-                pygame.draw.rect(surface, sym_col, inner_rect, border_radius=12)
-                text = symbol_display(sym_key)
-                draw_text(surface, text, x + CELL_SIZE // 2, y + CELL_SIZE // 2,
-                          font, BLACK, center=True)
+                if reel_spinning:
+                    # Lite "smetning" även för fallback-rutor   # <-- NEW
+                    offsets_and_alpha = [(-8, 90), (0, 190), (8, 90)]
+                    for dy, alpha in offsets_and_alpha:
+                        tmp = pygame.Surface(inner_rect.size, pygame.SRCALPHA)
+                        pygame.draw.rect(
+                            tmp,
+                            (*sym_col, alpha),
+                            pygame.Rect(0, 0, inner_rect.width, inner_rect.height),
+                            border_radius=12,
+                        )
+                        surface.blit(tmp, inner_rect.move(0, dy).topleft)
+                else:
+                    pygame.draw.rect(surface, sym_col, inner_rect, border_radius=12)
+                    text = symbol_display(sym_key)
+                    draw_text(
+                        surface,
+                        text,
+                        x + CELL_SIZE // 2,
+                        y + CELL_SIZE // 2,
+                        font,
+                        BLACK,
+                        center=True,
+                    )
             # --- HEL-CELLS-GRADIENT (svart → mörkare nedåt), ovanpå symbolen ---
             shade_rect = cell_rect.inflate(-4, -4)
             shade_surf = pygame.Surface(shade_rect.size, pygame.SRCALPHA)
@@ -1896,6 +1953,8 @@ def main():
             wild_reels=active_wild_reels,
             fs_mults=current_wild_mults if game_mode == "fs" and bonus_state == "running" else None,
             wild_drop_start_times=wild_drop_start_times,
+            is_spinning=is_spinning,                             # <-- NEW
+            reel_stop_times=reel_stop_times if is_spinning else None,  # <-- NEW
         )
 
         #draw_text(surface, f"Bet: {bet:.2f}", bet_label_pos[0], bet_label_pos[1], FONT_MEDIUM, WHITE, center=True)
