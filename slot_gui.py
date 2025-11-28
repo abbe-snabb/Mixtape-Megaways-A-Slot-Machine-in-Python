@@ -225,14 +225,14 @@ SYMBOL_COLORS = {
 
 # Big win
 BIG_WIN_THRESHOLD_MULT = 30.0  # 30x bet
-BIG_WIN_DURATION_MS = 5000     # 5 sek
+BIG_WIN_DURATION_MS = 4200     # 4.2 sek
 
 # FS transition (scatter trigger) timings
 SCATTER_FLASH_DURATION_MS = 1500   # scatters blinkar
 FS_FADEOUT_DURATION_MS = 1000      # används som duration både för fade in och fade out
 
 # Autospin delay i FS
-FS_AUTO_SPIN_DELAY_MS = 900
+FS_AUTO_SPIN_DELAY_MS = 1100
 
 # Extra delay efter en vinnande / retriggad FS
 FS_AUTO_SPIN_DELAY_WIN_MS = 2000
@@ -241,12 +241,12 @@ FS_AUTO_SPIN_DELAY_WIN_MS = 2000
 RETRIGGER_OVERLAY_DURATION_MS = 2200
 
 # Spin-timing
-SPIN_FIRST_STOP_MS = 800
-SPIN_REEL_STEP_MS = 350
+SPIN_FIRST_STOP_MS = 900
+SPIN_REEL_STEP_MS = 450
 SPIN_SYMBOL_CHANGE_MS = 75
 
 # Wild-reel drop-animation
-WILD_DROP_STEP_MS = 250
+WILD_DROP_STEP_MS = 300
 
 # Symboler som används för spinn-animation (ingen scatter)
 SPIN_SYMBOLS = [s for s in SYMBOLS if s != "S"]
@@ -283,15 +283,14 @@ def load_sound(filename, volume=1.0):
         return None
 
 # Effekter – byt filnamn till dina riktiga
-SND_SPIN_START      = load_sound("s_spin_start.wav",      0.7)
-SND_REEL_STOP       = load_sound("s_reel_stop.wav",       0.5)
-SND_BUTTON_CLICK    = load_sound("s_button_click.wav",    0.5)
-SND_WIN_SMALL       = load_sound("s_win_small.wav",       0.7)
+SND_SPIN_START      = load_sound("s_spin_start.wav",      0.7) #fixed
+SND_REEL_STOP       = load_sound("s_reel_stop.wav",       0.45) #fixed
+SND_BUTTON_CLICK    = load_sound("s_button_click.wav",    0.5) #dont need
+SND_WIN_SMALL       = load_sound("s_win_small.wav",       0.5) #fixed
 SND_WIN_BIG         = load_sound("s_win_big.wav",         0.8)
-SND_SCATTER_HIT     = load_sound("s_scatter_hit.wav",     0.8)
+SND_SCATTER_HIT     = load_sound("s_scatter_hit.wav",     0.8) #fixed but needs change
 SND_FS_TRIGGER      = load_sound("s_fs_trigger.wav",      0.9)
 SND_RETRIGGER       = load_sound("s_retrigger.wav",       0.9)
-SND_BONUS_END       = load_sound("s_bonus_end.wav",       0.8)
 
 # Musik – vi använder pygame.mixer.music för loopad bakgrundsmusik
 def play_music(mode):
@@ -301,16 +300,16 @@ def play_music(mode):
     """
     try:
         if mode == "base":
-            music_file = os.path.join(ASSET_DIR, "music_base.wav")
+            music_file = os.path.join(ASSET_DIR, "music_base.wav") #fixed
         else:
-            music_file = os.path.join(ASSET_DIR, "music_fs.wav")
+            music_file = os.path.join(ASSET_DIR, "music_fs.wav") #fixed
 
         if not os.path.exists(music_file):
             print(f"[INFO] ingen musikfil hittades: {music_file}")
             return
 
         pygame.mixer.music.load(music_file)
-        pygame.mixer.music.set_volume(0.4)
+        pygame.mixer.music.set_volume(0.2)
         pygame.mixer.music.play(-1)
     except Exception as e:
         print(f"[VARNING] kunde inte spela musik ({mode}): {e}")
@@ -1440,20 +1439,41 @@ def main():
                         and spin_button_rect.collidepoint(mx, my)
                         and not is_spinning and not big_win_active
                         and not buy_confirm_visible):
+
+                    # Man får bara manuellt spinna i base game (FS auto-spinnar)
                     if game_mode == "base":
                         if balance < bet:
                             message = "För lite saldo för att spinna."
                         else:
                             spin_held = True
                             balance -= bet
+
+                            # --- starta nytt spin ---
                             is_spinning = True
                             spin_result_applied = False
                             spin_start_time = now
+
                             reel_stop_times = [
                                 spin_start_time + SPIN_FIRST_STOP_MS + SPIN_REEL_STEP_MS * i
                                 for i in range(GRID_COLS)
                             ]
-                            reel_stop_played = [False] * GRID_COLS      # <-- NYTT
+                            reel_stop_played = [False] * GRID_COLS
+
+                            # Grid-resultatet för detta spin (VIKTIGT!)
+                            final_grid = spin_grid_same_probs()
+
+                            # Animations-grid (rullar symboler tills hjulen stannar)
+                            spin_anim_grid = [
+                                [random.choice(SPIN_SYMBOLS) for _ in range(GRID_COLS)]
+                                for _ in range(GRID_ROWS)
+                            ]
+                            last_spin_anim_update = now
+
+                            # Nollställ gammal vinstvisning för tydlighet
+                            last_win = 0.0
+                            last_win_positions = set()
+                            message = ""
+
                             if SND_SPIN_START:
                                 SND_SPIN_START.play()
 
@@ -1551,7 +1571,10 @@ def main():
                     if forced_scatter_spin:
                         base_mult = 0.0
                     else:
-                        base_mult = evaluate_megaways_win(current_grid, paytable)
+                        if current_grid is None:
+                            base_mult = 0.0    # safety fallback så vi aldrig kraschar
+                        else:
+                            base_mult = evaluate_megaways_win(current_grid, paytable)
 
                     win_amount = base_mult * bet
                     balance += win_amount
@@ -1686,11 +1709,16 @@ def main():
                         bonus_state = "finished_waiting"
                         fs_next_spin_time = None
 
+                        # Start BONUS OVER-overlay
                         end_fs_transition_active = True
                         end_fs_transition_phase = "fade_in"
                         end_fs_transition_start = now
-                        if SND_BONUS_END:
-                            SND_BONUS_END.play()        # <-- NYTT
+
+                        # "Tape stop" – fadea ut FS-musiken snabbt istället för separat ljud
+                        try:
+                            pygame.mixer.music.fadeout(1500)  # 1.5 s fade, justera fritt (800–2000 typ)
+                        except Exception as e:
+                            print("[VARNING] kunde inte fadeout musik vid bonus-slut:", e)
                     else:
                         if extra_spins > 0:
                             message = (
@@ -2272,7 +2300,8 @@ def main():
             draw_text(surface, retrigger_overlay_text,
                       WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2,
                       FONT_LARGE, YELLOW, center=True)
-
+        # RITA FOREGROUND-PARTIKLAR ALLRA SIST (ovanför grid, knappar, osv.)
+        update_and_draw_fg_particles(surface)
         if buy_confirm_visible:
             overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
             overlay.fill((0, 0, 0, 200))
@@ -2405,8 +2434,7 @@ def main():
                     sub_surf.set_alpha(alpha)
                     sub_rect = sub_surf.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 40))
                     surface.blit(sub_surf, sub_rect)
-        # RITA FOREGROUND-PARTIKLAR ALLRA SIST (ovanför grid, knappar, osv.)
-        update_and_draw_fg_particles(surface)
+
         if end_fs_transition_active:
             elapsed_end = now - end_fs_transition_start
             alpha_end = 0
