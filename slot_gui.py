@@ -63,6 +63,137 @@ FONT_MEDIUM = pygame.font.SysFont("arial", 26)
 FONT_LARGE = pygame.font.SysFont("arial", 36)
 FONT_HUGE = pygame.font.SysFont("arial", 52, bold=True)
 
+# ------------------- SPRÅK / TEXTER -------------------  # <-- NY
+LANG_SEQUENCE = ["sv", "en", "de", "fr", "es"]            # ordning på språkknappen
+
+TEXT = {                                                  # <-- NY
+    "sv": {
+        "LABEL_SALDO": "Saldo",
+        "LABEL_LAST_WIN": "Senaste vinst",
+        "LABEL_BET": "Insats",
+        "FS_SPINS_LEFT": "SPINS KVAR",
+        "FS_TOTAL_WIN": "TOTAL BONUSVINST",
+        "FS_THIS_SPIN": "DETTA SPINN",
+        "PAYTABLE_TITLE": "Vinsttabell",
+        "RULE_LINE1": "MATCHA 3, 4, 5 ELLER 6 SYMBOLER PÅ INTILLIGGANDE HJUL",
+        "RULE_LINE2": "MED START FRÅN FÖRSTA HJULET FÖR ATT VINNA",
+        "INFO_TITLE": "INFO",
+        "INFO_SCATTERS": "3 SCATTER-symboler triggar free spins.",
+        "INFO_MAXWIN": "Maxvinst: 5000x insats.",
+        "INFO_WILDS": "Under free spins kan hela wild-hjul med multiplikatorer landa.",
+        "LANG_NAME": "SV",
+        "BUY_TITLE": "KÖP BONUS?",
+        "BUY_QUESTION": "Vill du köpa free spins för {cost:.2f} kr?",
+        "BTN_YES": "JA",
+        "BTN_NO": "NEJ",
+        "FS_TRIGGER_TITLE": "FREE SPINS TRIGGADE!",
+        "CLICK_TO_CONTINUE": "Klicka för att fortsätta",
+        "BONUS_OVER_TITLE": "BONUS OVER",
+        "BONUS_OVER_WIN": "Du vann: {amount:.2f}",
+        "BIG_WIN_TITLE": "BIG WIN!",
+    },
+    "en": {
+        "LABEL_SALDO": "Balance",
+        "LABEL_LAST_WIN": "Last win",
+        "LABEL_BET": "Bet",
+        "FS_SPINS_LEFT": "SPINS LEFT",
+        "FS_TOTAL_WIN": "TOTAL BONUS WIN",
+        "FS_THIS_SPIN": "THIS SPIN",
+        "PAYTABLE_TITLE": "PAYTABLE",
+        "RULE_LINE1": "MATCH 3, 4, 5 OR 6 SYMBOLS ON ADJACENT REELS",
+        "RULE_LINE2": "STARTING FROM THE LEFTMOST REEL TO WIN",
+        "INFO_TITLE": "INFO",
+        "INFO_SCATTERS": "3 SCATTER symbols trigger free spins.",
+        "INFO_MAXWIN": "Max win: 5000x bet.",
+        "INFO_WILDS": "During free spins, full wild reels with multipliers can land.",
+        "LANG_NAME": "EN",
+        "BUY_TITLE": "BUY BONUS?",
+        "BUY_QUESTION": "Do you want to buy free spins for {cost:.2f} kr?",
+        "BTN_YES": "YES",
+        "BTN_NO": "NO",
+        "FS_TRIGGER_TITLE": "FREE SPINS TRIGGERED!",
+        "CLICK_TO_CONTINUE": "Click to continue",
+        "BONUS_OVER_TITLE": "BONUS OVER",
+        "BONUS_OVER_WIN": "You won: {amount:.2f}",
+        "BIG_WIN_TITLE": "BIG WIN!",
+    },
+    "de": {
+        "LABEL_SALDO": "Guthaben",
+        "LABEL_LAST_WIN": "Letzter Gewinn",
+        "LABEL_BET": "Einsatz",
+        "FS_SPINS_LEFT": "SPINS ÜBRIG",
+        "FS_TOTAL_WIN": "GESAMT BONUSGEWINN",
+        "FS_THIS_SPIN": "DIESER SPIN",
+        "PAYTABLE_TITLE": "GEWINNTABELLE",
+        "RULE_LINE1": "TREFFE 3, 4, 5 ODER 6 SYMBOLE AUF BENACHBARTEN WALZEN",
+        "RULE_LINE2": "BEGINNEND AUF DER LINKEN WALZE, UM ZU GEWINNEN",
+        "INFO_TITLE": "INFO",
+        "INFO_SCATTERS": "3 SCATTER-Symbole lösen Freispiele aus.",
+        "INFO_MAXWIN": "Maximalgewinn: 5000x Einsatz.",
+        "INFO_WILDS": "Während der Freispiele können volle Wild-Walzen mit Multiplikatoren landen.",
+        "LANG_NAME": "DE",
+        "BUY_TITLE": "BONUS KAUFEN?",
+        "BUY_QUESTION": "Möchtest du Freispiele für {cost:.2f} kr kaufen?",
+        "BTN_YES": "JA",
+        "BTN_NO": "NEIN",
+        "FS_TRIGGER_TITLE": "FREISPIELE AUSGELÖST!",
+        "CLICK_TO_CONTINUE": "Klicken zum Fortfahren",
+        "BONUS_OVER_TITLE": "BONUS VORBEI",
+        "BONUS_OVER_WIN": "Du hast gewonnen: {amount:.2f}",
+        "BIG_WIN_TITLE": "BIG WIN!",
+    },
+    "fr": {
+        "LABEL_SALDO": "Solde",
+        "LABEL_LAST_WIN": "Dernier gain",
+        "LABEL_BET": "Mise",
+        "FS_SPINS_LEFT": "TOURS RESTANTS",
+        "FS_TOTAL_WIN": "GAIN TOTAL BONUS",
+        "FS_THIS_SPIN": "CE TOUR",
+        "PAYTABLE_TITLE": "TABLE DE GAINS",
+        "RULE_LINE1": "ALIGNEZ 3, 4, 5 OU 6 SYMBOLES SUR DES ROULEAUX ADJACENTS",
+        "RULE_LINE2": "À PARTIR DU ROULEAU LE PLUS À GAUCHE POUR GAGNER",
+        "INFO_TITLE": "INFO",
+        "INFO_SCATTERS": "3 symboles SCATTER déclenchent les free spins.",
+        "INFO_MAXWIN": "Gain max : 5000x la mise.",
+        "INFO_WILDS": "Pendant les free spins, des rouleaux wilds complets avec multiplicateurs peuvent tomber.",
+        "LANG_NAME": "FR",
+        "BUY_TITLE": "ACHETER LE BONUS ?",
+        "BUY_QUESTION": "Voulez-vous acheter des free spins pour {cost:.2f} kr ?",
+        "BTN_YES": "OUI",
+        "BTN_NO": "NON",
+        "FS_TRIGGER_TITLE": "FREE SPINS DÉCLENCHÉS !",
+        "CLICK_TO_CONTINUE": "Cliquez pour continuer",
+        "BONUS_OVER_TITLE": "BONUS TERMINÉ",
+        "BONUS_OVER_WIN": "Vous avez gagné : {amount:.2f}",
+        "BIG_WIN_TITLE": "BIG WIN !",
+    },
+    "es": {
+        "LABEL_SALDO": "Saldo",
+        "LABEL_LAST_WIN": "Última ganancia",
+        "LABEL_BET": "Apuesta",
+        "FS_SPINS_LEFT": "GIROS RESTANTES",
+        "FS_TOTAL_WIN": "GANANCIA TOTAL DEL BONO",
+        "FS_THIS_SPIN": "ESTA TIRADA",
+        "PAYTABLE_TITLE": "TABLA DE PAGOS",
+        "RULE_LINE1": "ALINEA 3, 4, 5 O 6 SÍMBOLOS EN RODILLOS ADYACENTES",
+        "RULE_LINE2": "EMPEZANDO DESDE EL RODILLO MÁS A LA IZQUIERDA PARA GANAR",
+        "INFO_TITLE": "INFO",
+        "INFO_SCATTERS": "3 símbolos SCATTER activan los free spins.",
+        "INFO_MAXWIN": "Ganancia máxima: 5000x la apuesta.",
+        "INFO_WILDS": "Durante los free spins pueden aparecer rodillos wild completos con multiplicadores.",
+        "LANG_NAME": "ES",
+        "BUY_TITLE": "¿COMPRAR BONUS?",
+        "BUY_QUESTION": "¿Quieres comprar free spins por {cost:.2f} kr?",
+        "BTN_YES": "SÍ",
+        "BTN_NO": "NO",
+        "FS_TRIGGER_TITLE": "¡FREE SPINS ACTIVADOS!",
+        "CLICK_TO_CONTINUE": "Haz clic para continuar",
+        "BONUS_OVER_TITLE": "BONUS FINALIZADO",
+        "BONUS_OVER_WIN": "Has ganado: {amount:.2f}",
+        "BIG_WIN_TITLE": "BIG WIN!",
+    },
+}
+
 # Betnivåer
 BET_LEVELS = [1, 2, 4, 6, 8, 10, 15, 20, 25, 50, 100]
 
@@ -663,10 +794,27 @@ def draw_fs_neon_strips(surface):
 # ========================================================
 # UPDATE + DRAW ALL PARTICLES
 # ========================================================
-def update_and_draw_particles(surface):
-    now_dt = 1/60
+def update_and_draw_bg_particles(surface):       # <-- NY
+    """Ritar bara bakgrunds-partiklar (neon dust) bakom grid."""
+    now_dt = 1 / 60
 
-    # ---- LOGO SPARKS ----
+    dead = []
+    for p in particles_dust:
+        p["life"] -= now_dt
+        if p["life"] <= 0:
+            dead.append(p)
+            continue
+        p["y"] += p["vy"]
+        pygame.draw.circle(surface, p["color"], (int(p["x"]), int(p["y"])), p["size"])
+    for p in dead:
+        particles_dust.remove(p)
+
+
+def update_and_draw_fg_particles(surface):       # <-- NY
+    """Ritar logo-sparks och win-sparks ovanpå grid."""
+    now_dt = 1 / 60
+
+    # LOGO SPARKS
     dead = []
     for p in particles_logo:
         p["life"] -= now_dt
@@ -679,19 +827,7 @@ def update_and_draw_particles(surface):
     for p in dead:
         particles_logo.remove(p)
 
-    # ---- NEON DUST ----
-    dead = []
-    for p in particles_dust:
-        p["life"] -= now_dt
-        if p["life"] <= 0:
-            dead.append(p)
-            continue
-        p["y"] += p["vy"]
-        pygame.draw.circle(surface, p["color"], (int(p["x"]), int(p["y"])), p["size"])
-    for p in dead:
-        particles_dust.remove(p)
-
-    # ---- WIN SPARKS ----
+    # WIN SPARKS
     dead = []
     for p in particles_win:
         p["life"] -= now_dt
@@ -703,6 +839,7 @@ def update_and_draw_particles(surface):
         pygame.draw.circle(surface, p["color"], (int(p["x"]), int(p["y"])), p["size"])
     for p in dead:
         particles_win.remove(p)
+
     
 def draw_grid(surface, grid, font, win_positions=None, time_ms=0,
               wild_reels=None, fs_mults=None,
@@ -952,9 +1089,11 @@ def main():
 
     # ---------- Spelstatus ----------
     paytable_visible = False
+    paytable_mode = "paytable"          # <-- NY (växlar PAYTABLE/INFO)
+    current_language_index = 0          # <-- NY (0 = svenska)
     particles = []
     last_particle_spawn = 0
-    balance = 1000.0
+    balance = 13000.0
     bet_index = 0
     bet = BET_LEVELS[bet_index]
 
@@ -1058,6 +1197,9 @@ def main():
     )
     paytable_button_rect.center = (50, 50)  # uppe vänster i bas-koordinater
 
+    language_button_rect = pygame.Rect(0, 0, 90, 40)     # <-- NY
+    language_button_rect.center = (WINDOW_WIDTH - 90, 50)  # uppe höger  <-- NY
+
     confirm_width, confirm_height = 500, 260
     confirm_rect = pygame.Rect(
         (WINDOW_WIDTH - confirm_width) // 2,
@@ -1079,13 +1221,14 @@ def main():
     )
     # <-- NY: close-knapp för paytable
     paytable_close_rect = None
+    info_toggle_rect = None   # <-- NY: pilknapp inne i paytable
 
 
     running = True
     while running:
         dt = clock.tick(120)
         now = pygame.time.get_ticks()
-
+        current_language = LANG_SEQUENCE[current_language_index]  # <-- NY
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -1180,10 +1323,26 @@ def main():
                         paytable_visible = False
                         continue
 
+                # Pilknapp inne i paytable-panelen: växla PAYTABLE <-> INFO  <-- NY
+                if paytable_visible and info_toggle_rect is not None:
+                    if info_toggle_rect.collidepoint(mx, my):
+                        paytable_mode = "info" if paytable_mode == "paytable" else "paytable"
+                        continue
 
-                # Paytable-knapp (kan öppnas närsomhelst)
+                # Paytable-knapp: öppna/stäng panelen (ALLTID start på PAYTABLE)
                 if paytable_button_rect.collidepoint(mx, my):
-                    paytable_visible = not paytable_visible
+                    if not paytable_visible:
+                        paytable_visible = True
+                        paytable_mode = "paytable"
+                    else:
+                        paytable_visible = False
+                    continue
+
+
+
+                # Language-knapp – byt språk i ordning SV -> EN -> DE -> FR -> ES  <-- NY
+                if language_button_rect.collidepoint(mx, my):
+                    current_language_index = (current_language_index + 1) % len(LANG_SEQUENCE)
                     continue
 
                 # --- Bet-knappar (respektera min/max visuellt & logiskt) ---
@@ -1476,12 +1635,14 @@ def main():
         if game_mode == "fs" and BG_FS_IMG is not None:
             surface.blit(BG_FS_IMG, (0, 0))
             spawn_neon_dust(game_mode="fs")
+
         elif game_mode == "base" and BG_BASE_IMG is not None:
             surface.blit(BG_BASE_IMG, (0, 0))
             spawn_neon_dust(game_mode="base")
         else:
             surface.fill(BG_FS if game_mode == "fs" else BG_BASE)
-
+        # Rita bakgrundspartiklar bakom grid/logga             # <-- NY
+        update_and_draw_bg_particles(surface)
         if game_mode == "fs":
             draw_bonus_logo_electric(surface)
             spawn_logo_sparks(center_x=GRID_X + GRID_WIDTH // 2,
@@ -1522,7 +1683,8 @@ def main():
                 # Kant
                 pygame.draw.circle(surface, (120, 220, 255), circle_center, circle_radius, 3)
 
-                draw_text(surface, "SPINS KVAR", circle_center[0], circle_center[1] - 18,
+                draw_text(surface, TEXT[current_language]["FS_SPINS_LEFT"],
+                          circle_center[0], circle_center[1] - 18,
                           FONT_SMALL, GREY, center=True)
                 draw_text(surface, str(fs_spins_left), circle_center[0], circle_center[1] + 12,
                           FONT_LARGE, WHITE, center=True)
@@ -1553,8 +1715,9 @@ def main():
                 # Kant
                 pygame.draw.rect(surface, (120, 220, 255), total_rect, width=2, border_radius=18)
 
-                draw_text(surface, "TOTAL BONUSVINST", total_rect.centerx,
-                          total_rect.top + 15, FONT_SMALL, GREY, center=True)
+                draw_text(surface, TEXT[current_language]["FS_TOTAL_WIN"],
+                          total_rect.centerx, total_rect.top + 15,
+                          FONT_SMALL, GREY, center=True)
                 draw_text(surface, f"{fs_total_win:.2f}", total_rect.centerx,
                           total_rect.bottom - 26, FONT_MEDIUM, WHITE, center=True)
 
@@ -1581,14 +1744,24 @@ def main():
                 surface.blit(spin_highlight, spin_rect.topleft)
                 pygame.draw.rect(surface, (120, 220, 255), spin_rect, width=2, border_radius=18)
 
-                draw_text(surface, "DETTA SPINN", spin_rect.centerx,
-                          spin_rect.top + 15, FONT_SMALL, GREY, center=True)
+                draw_text(surface, TEXT[current_language]["FS_THIS_SPIN"],
+                          spin_rect.centerx, spin_rect.top + 15,
+                          FONT_SMALL, GREY, center=True)
                 draw_text(surface, f"{fs_last_spin_win:.2f}", spin_rect.centerx,
                           spin_rect.bottom - 26, FONT_MEDIUM, WHITE, center=True)
 
 
         now_ms = pygame.time.get_ticks()
-        active_wild_reels = set(wild_drop_start_times.keys()) if (game_mode == "fs" and bonus_state == "running") else None
+
+        # Wild-reels: under spin -> använd droppande reels,
+        # efter spin -> använd hela current_wild_reels           # <-- NY / ÄNDRA
+        if game_mode == "fs" and bonus_state == "running":
+            if is_spinning:
+                active_wild_reels = set(wild_drop_start_times.keys())
+            else:
+                active_wild_reels = set(current_wild_reels)
+        else:
+            active_wild_reels = None
 
         if is_spinning and spin_anim_grid is not None:
             grid_to_draw = spin_anim_grid
@@ -1754,6 +1927,19 @@ def main():
             hover=hover_paytable
         )
 
+        # Language-knapp (rektangel med språkkod)             # <-- NY
+        hover_lang = language_button_rect.collidepoint(mouse_pos)
+        lang_label = TEXT[current_language]["LANG_NAME"]
+        draw_button(
+            surface,
+            language_button_rect,
+            lang_label,
+            FONT_SMALL,
+            CYAN,
+            hover=hover_lang,
+            disabled=False,
+        )
+
         # --- Bottom-bar i samma stil som grid-panelen ---
         bottom_margin_x = 15
         bottom_margin_y = 30
@@ -1815,18 +2001,18 @@ def main():
 
         # Saldo (vänster)
         saldo_x = inner_rect.left + 180
-        draw_text(surface, f"Saldo: {balance:.2f}", saldo_x, center_y,
-                  FONT_SMALL, WHITE, center=True)
+        draw_text(surface, f"{TEXT[current_language]['LABEL_SALDO']}: {balance:.2f}",
+                  saldo_x, center_y, FONT_SMALL, WHITE, center=True)
 
         # Senaste vinst (mitten)
         last_win_x = inner_rect.centerx
-        draw_text(surface, f"Senaste vinst: {last_win:.2f}", last_win_x, center_y,
-                  FONT_SMALL, WHITE, center=True)
+        draw_text(surface, f"{TEXT[current_language]['LABEL_LAST_WIN']}: {last_win:.2f}",
+                  last_win_x, center_y, FONT_SMALL, WHITE, center=True)
 
         # Bet/insats (höger)
         bet_x = inner_rect.right - 180
-        draw_text(surface, f"Insats: {bet:.2f}", bet_x, center_y ,
-                  FONT_SMALL, WHITE, center=True)
+        draw_text(surface, f"{TEXT[current_language]['LABEL_BET']}: {bet:.2f}",
+                  bet_x, center_y, FONT_SMALL, WHITE, center=True)
 
         if paytable_visible:
             # Bakgrund overlay 50% svart
@@ -1853,6 +2039,27 @@ def main():
                 close_size,
             )
 
+            # --- Pilknapp för att byta sida (PAYTABLE <-> INFO) ---  # <-- NY
+            toggle_w = 40
+            toggle_h = close_size
+            info_toggle_rect = pygame.Rect(
+                paytable_close_rect.left - toggle_w - 10,
+                paytable_close_rect.top,
+                toggle_w,
+                toggle_h,
+            )
+
+            hover_toggle = info_toggle_rect.collidepoint(mouse_pos)
+            toggle_col = (60, 160, 220) if not hover_toggle else (100, 200, 255)
+
+            pygame.draw.rect(surface, toggle_col, info_toggle_rect, border_radius=10)
+            pygame.draw.rect(surface, WHITE, info_toggle_rect, width=2, border_radius=10)
+
+            arrow_char = ">" if paytable_mode == "paytable" else "<"
+            draw_text(surface, arrow_char,
+                      info_toggle_rect.centerx, info_toggle_rect.centery,
+                      FONT_LARGE, WHITE, center=True)
+
             close_hover = paytable_close_rect.collidepoint(mouse_pos)
             base_col = (200, 60, 60) if not close_hover else (255, 100, 100)
 
@@ -1864,58 +2071,69 @@ def main():
             pygame.draw.line(surface, base_col, (cx - r, cy - r), (cx + r, cy + r), thickness)
             pygame.draw.line(surface, base_col, (cx - r, cy + r), (cx + r, cy - r), thickness)
 
-            # Titel
-            draw_text(surface, "PAYTABLE", panel_x + panel_w // 2, panel_y + 40,
+            # Titel (växlar text beroende på mode)                     # <-- ÄNDRA
+            title_key = "PAYTABLE_TITLE" if paytable_mode == "paytable" else "INFO_TITLE"
+            draw_text(surface, TEXT[current_language][title_key],
+                      panel_x + panel_w // 2, panel_y + 40,
                       FONT_LARGE, WHITE, center=True)
 
-            # --- Samla alla betalande symboler (exkl. scatter & wild) ---
-            pay_syms = []
-            for sym in SYMBOLS:
-                if sym in ("S", "W"):
-                    continue
-                if any((sym, n) in paytable for n in (3, 4, 5, 6)):
-                    pay_syms.append(sym)
+            if paytable_mode == "paytable":                            # <-- NY
+                # --- PAYTABLE-SIDA (som du hade innan) ---
+                pay_syms = []
+                for sym in SYMBOLS:
+                    if sym in ("S", "W"):
+                        continue
+                    if any((sym, n) in paytable for n in (3, 4, 5, 6)):
+                        pay_syms.append(sym)
 
-            # Layout liknande bilden: 3 kolumner, flera rader
-            cols = 3
-            cell_w = panel_w // cols
-            cell_h = 150
-            start_y = panel_y + 100
+                cols = 3
+                cell_w = panel_w // cols
+                cell_h = 150
+                start_y = panel_y + 100
 
-            for idx, sym in enumerate(pay_syms):
-                col = idx % cols
-                row = idx // cols
+                for idx, sym in enumerate(pay_syms):
+                    col = idx % cols
+                    row = idx // cols
 
-                cell_x = panel_x + col * cell_w
-                cell_y = start_y + row * cell_h
+                    cell_x = panel_x + col * cell_w
+                    cell_y = start_y + row * cell_h
 
-                center_x = cell_x + cell_w // 2
+                    center_x = cell_x + cell_w // 2
 
-                # Symbol-bild högst upp i cellen
-                img = SYMBOL_IMAGES.get(sym)
-                if img is not None:
-                    img_rect = img.get_rect(center=(center_x, cell_y + 35))
-                    surface.blit(img, img_rect)
-                else:
-                    # fallback: bokstav
-                    draw_text(surface, sym, center_x, cell_y + 35, FONT_LARGE, WHITE, center=True)
+                    img = SYMBOL_IMAGES.get(sym)
+                    if img is not None:
+                        img_rect = img.get_rect(center=(center_x, cell_y + 35))
+                        surface.blit(img, img_rect)
+                    else:
+                        draw_text(surface, sym, center_x, cell_y + 35, FONT_LARGE, WHITE, center=True)
 
-                # Payouts 6x,5x,4x,3x under bilden
-                text_x = cell_x + 127
-                line_y = cell_y + 75
+                    text_x = cell_x + 127
+                    line_y = cell_y + 75
 
-                for multi in (6, 5, 4, 3):
-                    if (sym, multi) in paytable:
-                        val = paytable[(sym, multi)]
-                        draw_text(
-                            surface,
-                            f"{multi}x = {val:.2f}",
-                            text_x,
-                            line_y,
-                            FONT_SMALL,
-                            GREY
-                        )
-                        line_y += 22
+                    for multi in (6, 5, 4, 3):
+                        if (sym, multi) in paytable:
+                            val = paytable[(sym, multi)]
+                            draw_text(
+                                surface,
+                                f"{multi}x = {val:.2f}",
+                                text_x,
+                                line_y,
+                                FONT_SMALL,
+                                GREY
+                            )
+                            line_y += 22
+
+            else:
+                # --- INFO-SIDA (scatters / maxwin / wild reels) ---      # <-- NY
+                info_y = panel_y + 130
+                center_x = panel_x + panel_w // 2
+
+                draw_text(surface, TEXT[current_language]["INFO_SCATTERS"],
+                          center_x, info_y, FONT_MEDIUM, YELLOW, center=True)
+                draw_text(surface, TEXT[current_language]["INFO_MAXWIN"],
+                          center_x, info_y + 40, FONT_MEDIUM, WHITE, center=True)
+                draw_text(surface, TEXT[current_language]["INFO_WILDS"],
+                          center_x, info_y + 90, FONT_SMALL, GREY, center=True)
 
             # --- Scatter info ---
             '''
@@ -1942,8 +2160,9 @@ def main():
             '''
 
             # --- Regeltext längst ner (som på bilden) ---
-            rule_line1 = "MATCH 3, 4, 5 OR 6 SYMBOLS ACROSS ADJACENT REELS"
-            rule_line2 = "STARTING FROM LEFTMOST REEL, TO ACHIEVE A WIN"
+            rule_line1 = TEXT[current_language]["RULE_LINE1"]
+            rule_line2 = TEXT[current_language]["RULE_LINE2"]
+
 
             draw_text(
                 surface,
@@ -1980,11 +2199,12 @@ def main():
             pygame.draw.rect(surface, (30, 30, 60), confirm_rect, border_radius=16)
             pygame.draw.rect(surface, YELLOW, confirm_rect, width=3, border_radius=16)
 
-            draw_text(surface, "KÖP BONUS?", confirm_rect.centerx, confirm_rect.top + 40,
+            draw_text(surface, TEXT[current_language]["BUY_TITLE"],
+                      confirm_rect.centerx, confirm_rect.top + 40,
                       FONT_LARGE, YELLOW, center=True)
             draw_text(
                 surface,
-                f"Vill du köpa free spins för {buy_confirm_cost:.2f} kr?",
+                TEXT[current_language]["BUY_QUESTION"].format(cost=buy_confirm_cost),
                 confirm_rect.centerx,
                 confirm_rect.top + 100,
                 FONT_MEDIUM,
@@ -1995,10 +2215,10 @@ def main():
             yes_hover = confirm_yes_rect.collidepoint(mouse_pos)
             no_hover = confirm_no_rect.collidepoint(mouse_pos)
 
-            draw_button(surface, confirm_yes_rect, "JA", FONT_MEDIUM, GREEN,
-                        hover=yes_hover, disabled=False)
-            draw_button(surface, confirm_no_rect, "NEJ", FONT_MEDIUM, RED,
-                        hover=no_hover, disabled=False)
+            draw_button(surface, confirm_yes_rect, TEXT[current_language]["BTN_YES"],
+                        FONT_MEDIUM, GREEN, hover=yes_hover, disabled=False)
+            draw_button(surface, confirm_no_rect, TEXT[current_language]["BTN_NO"],
+                        FONT_MEDIUM, RED, hover=no_hover, disabled=False)
 
         if fs_transition_active:
             if fs_transition_phase == "flash":
@@ -2037,12 +2257,14 @@ def main():
                     overlay.fill((0, 0, 0, alpha))
                     surface.blit(overlay, (0, 0))
 
-                    title_surf = FONT_HUGE.render("FREE SPINS TRIGGADE!", True, YELLOW)
+                    title_surf = FONT_HUGE.render(TEXT[current_language]["FS_TRIGGER_TITLE"],
+                                                  True, YELLOW)
                     title_surf.set_alpha(alpha)
                     title_rect = title_surf.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 20))
                     surface.blit(title_surf, title_rect)
 
-                    sub_surf = FONT_MEDIUM.render("Klicka för att fortsätta", True, WHITE)
+                    sub_surf = FONT_MEDIUM.render(TEXT[current_language]["CLICK_TO_CONTINUE"],
+                                                  True, WHITE)
                     sub_surf.set_alpha(alpha)
                     sub_rect = sub_surf.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 40))
                     surface.blit(sub_surf, sub_rect)
@@ -2081,17 +2303,22 @@ def main():
                 overlay.fill((0, 0, 0, alpha_end))
                 surface.blit(overlay, (0, 0))
 
-                title_surf = FONT_HUGE.render("BONUS OVER", True, CYAN)
+                title_surf = FONT_HUGE.render(TEXT[current_language]["BONUS_OVER_TITLE"],
+                                              True, CYAN)
                 title_surf.set_alpha(alpha_end)
                 title_rect = title_surf.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 60))
                 surface.blit(title_surf, title_rect)
 
-                win_surf = FONT_LARGE.render(f"Du vann: {last_bonus_total:.2f}", True, WHITE)
+                win_surf = FONT_LARGE.render(
+                    TEXT[current_language]["BONUS_OVER_WIN"].format(amount=last_bonus_total),
+                    True, WHITE
+                )
                 win_surf.set_alpha(alpha_end)
                 win_rect = win_surf.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
                 surface.blit(win_surf, win_rect)
 
-                hint_surf = FONT_MEDIUM.render("Klicka för att fortsätta", True, GREY)
+                hint_surf = FONT_MEDIUM.render(TEXT[current_language]["CLICK_TO_CONTINUE"],
+                                               True, GREY)
                 hint_surf.set_alpha(alpha_end)
                 hint_rect = hint_surf.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 60))
                 surface.blit(hint_surf, hint_rect)
@@ -2107,12 +2334,14 @@ def main():
                 scale_phase = (now // 120) % 2
                 big_font = pygame.font.SysFont("arial", 64 + 6 * scale_phase, bold=True)
 
-                draw_text(surface, "BIG WIN!", WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 40,
+                draw_text(surface, TEXT[current_language]["BIG_WIN_TITLE"],
+                          WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 40,
                           big_font, YELLOW, center=True)
+
                 draw_text(surface, f"{last_win:.2f}", WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 20,
                           FONT_LARGE, WHITE, center=True)
-        # RITA PARTIKLAR ALLRA SIST (ovanför allt annat)
-        update_and_draw_particles(surface)
+        # RITA FOREGROUND-PARTIKLAR ALLRA SIST (ovanför grid, knappar, osv.)
+        update_and_draw_fg_particles(surface)
         # ---------- SKALA TILL FÖNSTRET ----------
         window_w, window_h = screen.get_size()
 

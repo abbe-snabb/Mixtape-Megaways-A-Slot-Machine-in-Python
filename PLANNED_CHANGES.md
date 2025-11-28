@@ -1,8 +1,7 @@
 1. Fixa partiklarna så dem ser lite bättre ut! Eventuellt att lägga til mer när saker och ting händer eller liknande.
 2. Lägg till ljud
-3. informationsknappen ska ha paytable (Vilket den redan har) och information-sida så som hur många scatter symboler som behövs för att trigga bonusen, samt maxwin: 5000x.
-4. Bakgrundspartiklar ska ligga bakom grid-blocket.
-5. Language button som ändrar all text från ett språk till ett annat. Tillgängliga språk ska vara (Svenska, Engelska, Tyska, Franska, Spanska).
+3. köp bonus blocket måste scalea till hur lång texten är i alla olika språk, så att inte texten flyter utanför boxen!
+
 
 
 
