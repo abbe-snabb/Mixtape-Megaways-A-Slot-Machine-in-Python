@@ -631,29 +631,47 @@ def draw_grid(surface, grid, font, win_positions=None, time_ms=0,
 
             inner_rect = cell_rect.inflate(-14, -14)
             img = SYMBOL_IMAGES.get(sym_key)
+
             if img is not None:
                 if reel_spinning:
-                    # lite motion blur för web men mindre jobb än PC-varianten
-                    tmp = img.copy()
-                    tmp.set_alpha(190)
-                    img_rect = tmp.get_rect(center=inner_rect.center)
-                    surface.blit(tmp, img_rect)
+                    # --- Motion blur med 3 kopior (billig men snygg) ---
+                    offsets_and_alpha = [(-8, 80), (0, 190), (8, 80)]
+                    for dy, alpha in offsets_and_alpha:
+                        tmp = img.copy()
+                        tmp.set_alpha(alpha)
+                        tmp_rect = tmp.get_rect(
+                            center=(inner_rect.centerx, inner_rect.centery + dy)
+                        )
+                        surface.blit(tmp, tmp_rect)
                 else:
                     img_rect = img.get_rect(center=inner_rect.center)
                     surface.blit(img, img_rect)
             else:
                 sym_col = SYMBOL_COLORS.get(sym_key, WHITE)
-                pygame.draw.rect(surface, sym_col, inner_rect, border_radius=10)
-                text = symbol_display(sym_key)
-                draw_text(
-                    surface,
-                    text,
-                    x + CELL_SIZE // 2,
-                    y + CELL_SIZE // 2,
-                    font,
-                    BLACK,
-                    center=True,
-                )
+                if reel_spinning:
+                    # --- Motion blur även för fallback-färg-rutor ---
+                    offsets_and_alpha = [(-8, 90), (0, 190), (8, 90)]
+                    for dy, alpha in offsets_and_alpha:
+                        tmp = pygame.Surface(inner_rect.size, pygame.SRCALPHA)
+                        pygame.draw.rect(
+                            tmp,
+                            (*sym_col, alpha),
+                            pygame.Rect(0, 0, inner_rect.width, inner_rect.height),
+                            border_radius=10,
+                        )
+                        surface.blit(tmp, inner_rect.move(0, dy).topleft)
+                else:
+                    pygame.draw.rect(surface, sym_col, inner_rect, border_radius=10)
+                    text = symbol_display(sym_key)
+                    draw_text(
+                        surface,
+                        text,
+                        x + CELL_SIZE // 2,
+                        y + CELL_SIZE // 2,
+                        font,
+                        BLACK,
+                        center=True,
+                    )
 
     # MULTIPLIER-CIRKLAR
     circle_y = GRID_Y + GRID_HEIGHT + 22

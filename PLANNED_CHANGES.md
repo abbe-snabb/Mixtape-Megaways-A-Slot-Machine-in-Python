@@ -1,5 +1,6 @@
 1. Eventuellt lägga till fler partiklar någonstans (osäker var)
 2. implementera nya bilder, det ska vara flagor istället för sv, fr, de, en osv. Det ska också vara snyggare pilknappar när man rör sig i informationsrutan.
+3. Valutaomväxlingar
 
 
 
