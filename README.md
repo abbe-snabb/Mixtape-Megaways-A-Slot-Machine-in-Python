@@ -9,7 +9,6 @@ pip install -r requirements.txt
 ```
 
 
-# Try the game through GitHub Pages
+## Try the game through GitHub Pages
 [Click here to try it!](https://abbe-snabb.github.io/Mixtape-Megaways-A-Slot-Machine-in-Python/)
-or open the following link in a browser:
-https://abbe-snabb.github.io/Mixtape-Megaways-A-Slot-Machine-in-Python/
+(https://abbe-snabb.github.io/Mixtape-Megaways-A-Slot-Machine-in-Python/)
